@@ -29,8 +29,14 @@ __used __section("__versions") = {
 	{ 0xfe990052, "gpio_free" },
 	{ 0xe7a56280, "gpiod_unexport" },
 	{ 0xc1514a3b, "free_irq" },
+	{ 0x8e865d3c, "arm_delay_ops" },
 	{ 0x92d5838e, "request_threaded_irq" },
 	{ 0xd0522fb3, "gpiod_to_irq" },
+	{ 0xedc03953, "iounmap" },
+	{ 0xe97c4103, "ioremap" },
+	{ 0xafe12435, "filp_close" },
+	{ 0x30370758, "kernel_read" },
+	{ 0xd7146974, "filp_open" },
 	{ 0x8bc5790d, "gpiod_direction_input" },
 	{ 0xf9179a2e, "gpiod_export" },
 	{ 0x45b533d5, "gpiod_direction_output_raw" },
@@ -47,4 +53,4 @@ __used __section("__versions") = {
 MODULE_INFO(depends, "");
 
 
-MODULE_INFO(srcversion, "CC96FC3F047623475BB5614");
+MODULE_INFO(srcversion, "614FD6561833A703D757AA7");

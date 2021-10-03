@@ -5,15 +5,12 @@
 #include <linux/interrupt.h>	// IRQ code
 #include <linux/kmod.h>			// call_usermodehelper
 #include <linux/types.h>		// uint_32
-//#include "gpio_manager.h"
+#include "gpio_manager.h"
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Roger Miranda");
 MODULE_DESCRIPTION("Encender LEDs y ejecutar programas al presionar botones");
 MODULE_VERSION("0.1");
-
-#define STR_HELPER(x) #x
-#define STR(x) STR_HELPER(x)
 
 #define GPIO_LED1 	16
 #define GPIO_LED2 	20
@@ -47,13 +44,6 @@ static Button btns[] = {
 
 static irq_handler_t gpio_irq_handler(unsigned int irq, void *dev_id, struct pt_regs *regs);
 
-static int enable_pull_up(const char *pin) {
-	// TODO {"/home/rogermiranda1000/lkm/script1.sh", NULL}
-	const char *const pull_up_cmd[] = { "/usr/bin/raspi-gpio", "set", pin, "pu" };
-	const char *envp[] = { "SHELL=/bin/bash", "HOME=/home/" USER, "PWD=/home/" USER, NULL };
-	return call_usermodehelper(pull_up_cmd[0], (char**)pull_up_cmd, (char**)envp, UMH_WAIT_EXEC);
-}
-
 static int setup_btn(uint8_t index) {
 	int result;
 	uint32_t gpio;
@@ -62,7 +52,7 @@ static int setup_btn(uint8_t index) {
 	gpio_request(gpio, "sysfs");
 	gpio_direction_input(gpio);
 	gpio_export(gpio, false);
-	//setGpioPull(gpio, PULL_UP); // TODO enable pull-up
+	setGpioPull(gpio, PULL_UP);
 #if (BTN_DEBOUNCE>0)
 	gpio_set_debounce(gpio, BTN_DEBOUNCE);
 #endif

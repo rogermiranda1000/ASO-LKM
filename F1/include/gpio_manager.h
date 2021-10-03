@@ -1,6 +1,3 @@
-#include <linux/types.h>	// uint_32
-#include <linux/fs.h>		// filp_open/filp_close
-#include <linux/delay.h>	// udelay
 
 /**
  * It enables the pull-ups
@@ -8,9 +5,25 @@
  * @author Roger Miranda
  */
 
+#include <linux/types.h>	// uint_32
+#include <linux/fs.h>		// filp_open/filp_close
+#include <linux/delay.h>	// udelay
+#include <linux/io.h>		// ioremap?
 
 #define PULL_DOWN    1
 #define PULL_UP      2
+
+
+/**
+ * Equivalent to 'raspi-gpio set <gpio> <pu/pd>'
+ * @param gpio Valid GPIO pin
+ * @param pull PULL_DOWN/PULL_UP
+ */
+static int setGpioPull(uint32_t gpio, int pull);
+
+/****************************
+ ***   PRIVATE FUNCTIONS  ***
+ ****************************/
 
 #define GPIO_BASE_OFFSET 0x00200000
 #define GPPUD        37
@@ -50,17 +63,6 @@ static uint32_t getGpioRegBase(bool *error) {
     }
 }
 
-static volatile uint32_t *getBase(uint32_t reg_base) {
-	struct file *fd;
-	volatile uint32_t *r;
-	
-	if (IS_ERR(( fd = filp_open("/dev/mem", O_RDWR | O_SYNC | O_CLOEXEC, 0) ))) return NULL;
-	r = (uint32_t*)mmap(0, 0x1000, PROT_READ|PROT_WRITE, MAP_SHARED, fd, reg_base);
-	filp_close(fd, NULL); // TODO the original didn't have this
-	
-	return r;
-}
-
 static void setPull(volatile uint32_t *base, uint32_t gpio, int pull) {
 	int clkreg = GPPUDCLK0 + (gpio / 32);
 	int clkbit = 1 << (gpio % 32);
@@ -75,11 +77,6 @@ static void setPull(volatile uint32_t *base, uint32_t gpio, int pull) {
 	udelay(10);
 }
 
-/**
- * Equivalent to 'raspi-gpio set <gpio> <pu/pd>'
- * @param gpio Valid GPIO pin
- * @param pull PULL_DOWN/PULL_UP
- */
 static int setGpioPull(uint32_t gpio, int pull) {
 	bool error;
 	uint32_t reg_base;
@@ -87,10 +84,10 @@ static int setGpioPull(uint32_t gpio, int pull) {
 	
 	reg_base = getGpioRegBase(&error);
 	if (error) return -1;
-	base = getBase(reg_base);
+	base = (uint32_t*)ioremap(reg_base, 0x1000);
 	if (base == NULL || base == (uint32_t*)-1) return -1;
 	setPull(base, gpio, pull);
+	iounmap(base);
 	
 	return 0;
 }
-
