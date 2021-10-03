@@ -1,0 +1,1 @@
+cmd_/home/rogermiranda1000/lkm/btn_led/btn_led.ko := ld -r  -EL  --build-id=sha1  -T scripts/module.lds -o /home/rogermiranda1000/lkm/btn_led/btn_led.ko /home/rogermiranda1000/lkm/btn_led/btn_led.o /home/rogermiranda1000/lkm/btn_led/btn_led.mod.o;  true

@@ -1,0 +1,1 @@
+cmd_/home/rogermiranda1000/lkm/hello_world.ko := ld -r  -EL  --build-id=sha1  -T scripts/module.lds -o /home/rogermiranda1000/lkm/hello_world.ko /home/rogermiranda1000/lkm/hello_world.o /home/rogermiranda1000/lkm/hello_world.mod.o;  true
