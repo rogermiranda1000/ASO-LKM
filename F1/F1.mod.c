@@ -26,19 +26,19 @@ MODULE_INFO(retpoline, "Y");
 static const struct modversion_info ____versions[]
 __used __section("__versions") = {
 	{ 0x5200e57f, "module_layout" },
-	{ 0xc1514a3b, "free_irq" },
-	{ 0xc5850110, "printk" },
-	{ 0x45b533d5, "gpiod_direction_output_raw" },
-	{ 0x8f678b07, "__stack_chk_guard" },
-	{ 0x86332725, "__stack_chk_fail" },
-	{ 0x92d5838e, "request_threaded_irq" },
-	{ 0xd0522fb3, "gpiod_to_irq" },
-	{ 0xa7eedcc4, "call_usermodehelper" },
-	{ 0xf9179a2e, "gpiod_export" },
-	{ 0x8bc5790d, "gpiod_direction_input" },
-	{ 0x47229b5c, "gpio_request" },
 	{ 0xfe990052, "gpio_free" },
 	{ 0xe7a56280, "gpiod_unexport" },
+	{ 0xc1514a3b, "free_irq" },
+	{ 0x92d5838e, "request_threaded_irq" },
+	{ 0xd0522fb3, "gpiod_to_irq" },
+	{ 0x8bc5790d, "gpiod_direction_input" },
+	{ 0xf9179a2e, "gpiod_export" },
+	{ 0x45b533d5, "gpiod_direction_output_raw" },
+	{ 0x47229b5c, "gpio_request" },
+	{ 0xc5850110, "printk" },
+	{ 0x8f678b07, "__stack_chk_guard" },
+	{ 0x86332725, "__stack_chk_fail" },
+	{ 0xa7eedcc4, "call_usermodehelper" },
 	{ 0x6d118bcf, "gpiod_set_raw_value" },
 	{ 0x8e917b33, "gpio_to_desc" },
 	{ 0xb1ad28e0, "__gnu_mcount_nc" },
@@ -47,4 +47,4 @@ __used __section("__versions") = {
 MODULE_INFO(depends, "");
 
 
-MODULE_INFO(srcversion, "D6FD2427DEB6A4CD6B55E7C");
+MODULE_INFO(srcversion, "3ED9ACE0C0E23E7B34C166B");

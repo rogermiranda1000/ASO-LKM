@@ -1,2 +1,2 @@
 #!/bin/bash
-echo "4" > 4.txt
+echo "4" > ~/4.txt
