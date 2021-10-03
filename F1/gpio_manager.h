@@ -1,0 +1,94 @@
+#include <linux/types.h>	// uint_32
+#include <linux/mman.h>		// mman
+#include <linux/fs.h>		// filp_open/filp_close
+#include <linux/delay.h>	// delay
+
+/**
+ * It enables the pull-ups
+ * @author https://github.com/RPi-Distro/raspi-gpio/blob/master/raspi-gpio.c
+ * @author Roger Miranda
+ */
+
+
+#define PULL_DOWN    1
+#define PULL_UP      2
+
+#define GPIO_BASE_OFFSET 0x00200000
+#define GPPUD        37
+#define GPPUDCLK0    38
+
+static uint32_t getGpioRegBase(bool *error) {
+    const char *revision_file = "/proc/device-tree/system/linux,revision";
+    uint8_t revision[4] = { 0 };
+    uint32_t cpu = 0;
+    FILE *fd;
+
+    if ((fd = fopen(revision_file, "rb")) == NULL) {
+		*error = true;
+		return 0;
+	}
+	
+	if (fread(revision, 1, sizeof(revision), fd) == 4) cpu = (revision[2] >> 4) & 0xf;
+	else {
+		*error = true;
+		return 0;
+	}
+
+	fclose(fd);
+
+	*error = false;
+    switch (cpu) {
+		case 0: // BCM2835 [Pi 1 A; Pi 1 B; Pi 1 B+; Pi Zero; Pi Zero W]
+			return 0x20000000 + GPIO_BASE_OFFSET;
+		case 1: // BCM2836 [Pi 2 B]
+		case 2: // BCM2837 [Pi 3 B; Pi 3 B+; Pi 3 A+]
+			return 0x3f000000 + GPIO_BASE_OFFSET;
+		case 3: // BCM2711 [Pi 4 B]
+			return 0xfe000000 + GPIO_BASE_OFFSET;
+		default:
+			*error = true;
+			return 0;
+    }
+}
+
+static volatile uint32_t *getBase(uint32_t reg_base) {
+	struct file *f;
+	volatile uint32_t *r;
+	
+	if (IS_ERR(( f = filp_open("/dev/mem", O_RDWR | O_SYNC | O_CLOEXEC, 0) ))) return NULL;
+	r = (uint32_t*)mmap(0, 0x1000, PROT_READ|PROT_WRITE, MAP_SHARED, f, reg_base);
+	filp_close(f, NULL);
+	
+	return r;
+	
+	
+}
+
+static void setPull(volatile uint32_t *base, uint32_t gpio, int pull) {
+	int clkreg = GPPUDCLK0 + (gpio / 32);
+	int clkbit = 1 << (gpio % 32);
+
+	base[GPPUD] = pull;
+	udelay(10);
+	base[clkreg] = clkbit;
+	udelay(10);
+	base[GPPUD] = 0;
+	udelay(10);
+	base[clkreg] = 0;
+	udelay(10);
+}
+
+static int setGpioPull(uint32_t gpio, int pull) {
+	bool error;
+	uint32_t reg_base;
+	volatile uint32_t *base;
+	
+	reg_base = getGpioRegBase(&error);
+	if (error) return -1;
+	base = getBase(reg_base);
+	if (base == NULL || base == (uint32_t*)-1) return -1;
+	setPull(base, gpio, pull);
+	
+	return 0;
+}
+

@@ -5,6 +5,7 @@
 #include <linux/interrupt.h>	// IRQ code
 #include <linux/kmod.h>			// call_usermodehelper
 #include <linux/types.h>		// uint_32
+#include "gpio_manager.h"
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Roger Miranda");
@@ -18,13 +19,15 @@ MODULE_VERSION("0.1");
 #define GPIO_LED2 	16
 
 #define BTN_NUM		4
-#define GPIO_BTN1 	13
+#define BTN_DEBOUNCE 0
+#define GPIO_BTN1 	6
 #define GPIO_BTN2 	26
-#define GPIO_BTN3 	19
+#define GPIO_BTN3 	13
 #define GPIO_BTN4 	21
 
 #define PROGRAM_NAME "F1"
 #define USER		"rogermiranda1000"
+#define PATH		"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/games:/usr/games"
 
 static uint32_t irqNumber[BTN_NUM];
 static uint8_t irqIndex = 0;
@@ -37,7 +40,7 @@ static irq_handler_t erpi_gpio_irq_handler(unsigned int irq, void *dev_id, struc
 
 static int enable_pull_up(const char *pin) {
 	const char *const pull_up_cmd[] = { "/usr/bin/raspi-gpio", "set", pin, "pu" };
-	const char *envp[] = { "SHELL=/bin/bash", "HOME=/home/" USER, "USER=" USER, "PATH=/sbin:/usr/sbin:/bin:/usr/bin", "PWD=/home/" USER, NULL };
+	const char *envp[] = { "SHELL=/bin/bash", "HOME=/home/" USER, "USER=" USER, "PATH=" PATH, "PWD=/home/" USER, NULL };
 	return call_usermodehelper(pull_up_cmd[0], (char**)pull_up_cmd, (char**)envp, UMH_WAIT_EXEC);
 }
 
@@ -47,8 +50,14 @@ static int setup_btn(uint32_t gpio, const char *gpio_s, irq_handler_t handler) {
 	gpio_request(gpio, "sysfs");
 	gpio_direction_input(gpio);
 	gpio_export(gpio, false);
-	result = enable_pull_up(gpio_s); // enable pull-up
-	if (result != 0) return result;
+	setGpioPull(gpio, PULL_UP); // enable pull-up
+#if (BTN_DEBOUNCE>0)
+	gpio_set_debounce(gpio, BTN_DEBOUNCE);
+#endif
+	
+	// enable pull-up
+	/*result = enable_pull_up(gpio_s);
+	if (result != 0) return result;*/
 	
 	// interrupt entry point
 	irqNumber[irqIndex] = gpio_to_irq(gpio);
@@ -74,6 +83,11 @@ static int __init erpi_gpio_init(void) {
 	gpio_direction_output(GPIO_LED1, ledStates[0]);	// set in output mode and on
 	ledStates[0] = true;
 	gpio_export(GPIO_LED1, false);				// appears in /sys/class/gpio; false prevents direction change
+	
+	gpio_request(GPIO_LED2, "sysfs");			// request GPIO
+	gpio_direction_output(GPIO_LED2, ledStates[1]);	// set in output mode and on
+	ledStates[1] = true;
+	gpio_export(GPIO_LED2, false);				// appears in /sys/class/gpio; false prevents direction change
 
 	// BTN
 	result = setup_btn(GPIO_BTN1, STR(GPIO_BTN1), (irq_handler_t)erpi_gpio_irq_handler);
@@ -100,16 +114,23 @@ static void __exit erpi_gpio_exit(void) {
 	free_btn(GPIO_BTN3);
 	free_btn(GPIO_BTN4);
 	
-	// free LED
+	// free LEDs
 	gpio_set_value(GPIO_LED1, 0);	// turn the LED off
 	gpio_unexport(GPIO_LED1);
 	gpio_free(GPIO_LED1);
+	
+	gpio_set_value(GPIO_LED2, 0);	// turn the LED off
+	gpio_unexport(GPIO_LED2);
+	gpio_free(GPIO_LED2);
 }
 
 static irq_handler_t erpi_gpio_irq_handler(unsigned int irq, void *dev_id, struct pt_regs *regs) {
 	ledStates[0] = !ledStates[0];
+	ledStates[1] = !ledStates[0];
 	gpio_set_value(GPIO_LED1, ledStates[0]);
+	gpio_set_value(GPIO_LED2, ledStates[1]);
 	numberPresses[0]++;
+	numberPresses[1]++;
 	return (irq_handler_t) IRQ_HANDLED; // announce IRQ handled
 }
 
