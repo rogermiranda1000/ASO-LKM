@@ -1,7 +1,6 @@
 #include <linux/types.h>	// uint_32
-#include <linux/mman.h>		// mman
 #include <linux/fs.h>		// filp_open/filp_close
-#include <linux/delay.h>	// delay
+#include <linux/delay.h>	// udelay
 
 /**
  * It enables the pull-ups
@@ -18,23 +17,23 @@
 #define GPPUDCLK0    38
 
 static uint32_t getGpioRegBase(bool *error) {
-    const char *revision_file = "/proc/device-tree/system/linux,revision";
     uint8_t revision[4] = { 0 };
     uint32_t cpu = 0;
-    FILE *fd;
+	struct file *fd;
+    ssize_t rc = 0;
 
-    if ((fd = fopen(revision_file, "rb")) == NULL) {
+	if (IS_ERR(( fd = filp_open("/proc/device-tree/system/linux,revision", O_RDONLY | O_SYNC | O_CLOEXEC, 0) ))) {
 		*error = true;
 		return 0;
 	}
 	
-	if (fread(revision, 1, sizeof(revision), fd) == 4) cpu = (revision[2] >> 4) & 0xf;
+	if ((rc = kernel_read(fd, revision, sizeof(revision), 0)) == 4) cpu = (revision[2] >> 4) & 0xf;
 	else {
 		*error = true;
 		return 0;
 	}
 
-	fclose(fd);
+	filp_close(fd, NULL);
 
 	*error = false;
     switch (cpu) {
@@ -52,16 +51,14 @@ static uint32_t getGpioRegBase(bool *error) {
 }
 
 static volatile uint32_t *getBase(uint32_t reg_base) {
-	struct file *f;
+	struct file *fd;
 	volatile uint32_t *r;
 	
-	if (IS_ERR(( f = filp_open("/dev/mem", O_RDWR | O_SYNC | O_CLOEXEC, 0) ))) return NULL;
-	r = (uint32_t*)mmap(0, 0x1000, PROT_READ|PROT_WRITE, MAP_SHARED, f, reg_base);
-	filp_close(f, NULL);
+	if (IS_ERR(( fd = filp_open("/dev/mem", O_RDWR | O_SYNC | O_CLOEXEC, 0) ))) return NULL;
+	r = (uint32_t*)mmap(0, 0x1000, PROT_READ|PROT_WRITE, MAP_SHARED, fd, reg_base);
+	filp_close(fd, NULL); // TODO the original didn't have this
 	
 	return r;
-	
-	
 }
 
 static void setPull(volatile uint32_t *base, uint32_t gpio, int pull) {
@@ -78,6 +75,11 @@ static void setPull(volatile uint32_t *base, uint32_t gpio, int pull) {
 	udelay(10);
 }
 
+/**
+ * Equivalent to 'raspi-gpio set <gpio> <pu/pd>'
+ * @param gpio Valid GPIO pin
+ * @param pull PULL_DOWN/PULL_UP
+ */
 static int setGpioPull(uint32_t gpio, int pull) {
 	bool error;
 	uint32_t reg_base;
