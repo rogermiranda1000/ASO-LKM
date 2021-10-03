@@ -35,16 +35,16 @@ __used __section("__versions") = {
 	{ 0xf9179a2e, "gpiod_export" },
 	{ 0x45b533d5, "gpiod_direction_output_raw" },
 	{ 0x47229b5c, "gpio_request" },
-	{ 0xc5850110, "printk" },
 	{ 0x8f678b07, "__stack_chk_guard" },
 	{ 0x86332725, "__stack_chk_fail" },
 	{ 0xa7eedcc4, "call_usermodehelper" },
 	{ 0x6d118bcf, "gpiod_set_raw_value" },
 	{ 0x8e917b33, "gpio_to_desc" },
+	{ 0xc5850110, "printk" },
 	{ 0xb1ad28e0, "__gnu_mcount_nc" },
 };
 
 MODULE_INFO(depends, "");
 
 
-MODULE_INFO(srcversion, "3ED9ACE0C0E23E7B34C166B");
+MODULE_INFO(srcversion, "CC96FC3F047623475BB5614");

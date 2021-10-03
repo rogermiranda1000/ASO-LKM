@@ -40,9 +40,9 @@ typedef struct {
 
 static Button btns[] = {
 	(Button){21,  "/home/rogermiranda1000/lkm/script1.sh", GPIO_LED1, true, 0, 0},
-	(Button){26, "/home/rogermiranda1000/lkm/script1.sh", GPIO_LED1, false, 0, 0},
-	(Button){13, "/home/rogermiranda1000/lkm/script1.sh", GPIO_LED2, true, 0, 0},
-	(Button){6, "/home/rogermiranda1000/lkm/script1.sh", GPIO_LED2, false, 0, 0}
+	(Button){26, "/home/rogermiranda1000/lkm/script2.sh", GPIO_LED1, false, 0, 0},
+	(Button){13, "/home/rogermiranda1000/lkm/script3.sh", GPIO_LED2, true, 0, 0},
+	(Button){6, "/home/rogermiranda1000/lkm/script4.sh", GPIO_LED2, false, 0, 0}
 };
 
 static irq_handler_t gpio_irq_handler(unsigned int irq, void *dev_id, struct pt_regs *regs);
@@ -126,14 +126,19 @@ static void __exit erpi_gpio_exit(void) {
 
 static irq_handler_t gpio_irq_handler(unsigned int irq, void *dev_id, struct pt_regs *regs) {
 	uint8_t x;
-	const char *args[] = { btns[0].cmd, NULL }; // TODO tmp
-	const char *envp[] = { "SHELL=/bin/bash", "HOME=/home/" USER, "PWD=/home/" USER, NULL };
+	const char *args[] = { NULL, NULL }; // the command (1st argument) will be added later
+	const char *envp[] = { "HOME=/home/" USER, /*"SHELL=/bin/bash", "PWD=/home/" USER,*/ NULL };
+	
+	printk(KERN_INFO PROGRAM_NAME ": interrupt detected!");
 	
 	for (x = 0; x < BTN_NUM; x++) {
 		if (irq != btns[x].irqNumber) continue;
+		
+		printk(KERN_INFO PROGRAM_NAME ": button on GPIO%d pressed, running commands...", btns[x].gpio);
+		
 		gpio_set_value(btns[x].led_gpio, btns[x].toggle_on);
-		//args[0] = btns[x].cmd;
-		call_usermodehelper(args[0], (char**)args, (char**)envp, UMH_WAIT_EXEC);
+		args[0] = btns[x].cmd;
+		call_usermodehelper(args[0], (char**)args, (char**)envp, UMH_NO_WAIT);
 		break;
 	}
 	return (irq_handler_t) IRQ_HANDLED; // announce IRQ handled
