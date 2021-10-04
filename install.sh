@@ -1,6 +1,6 @@
 #!/bin/bash
 if [ -z $1 ]; then
-	echo "Introdueix un fitxer"
+	echo "Introdueix un directori"
 	exit 1
 fi
 
