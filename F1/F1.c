@@ -125,10 +125,10 @@ static irq_handler_t gpio_irq_handler(unsigned int irq, void *dev_id, struct pt_
 	for (x = 0; x < BTN_NUM; x++) {
 		if (irq != btns[x].irqNumber) continue;
 		
-		printk(KERN_INFO PROGRAM_NAME ": button on GPIO%d pressed, running commands...", btns[x].gpio);
+		printk(KERN_INFO PROGRAM_NAME ": button on GPIO%d pressed (%d times), running '%s'...", btns[x].gpio, ++btns[x].numPresses, btns[x].cmd);
 		
 		gpio_set_value(btns[x].led_gpio, btns[x].toggle_on);
-		call_cmd(btns[x].cmd);
+		call_cmd(btns[x].cmd); // we can't call call_usermodehelper from an interrupt [https://www.spinics.net/lists/newbies/msg25061.html]
 		break;
 	}
 	return (irq_handler_t) IRQ_HANDLED; // announce IRQ handled
