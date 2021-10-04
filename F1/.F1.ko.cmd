@@ -1,1 +1,0 @@
-cmd_/home/rogermiranda1000/lkm/F1/F1.ko := ld -r  -EL  --build-id=sha1  -T scripts/module.lds -o /home/rogermiranda1000/lkm/F1/F1.ko /home/rogermiranda1000/lkm/F1/F1.o /home/rogermiranda1000/lkm/F1/F1.mod.o;  true
