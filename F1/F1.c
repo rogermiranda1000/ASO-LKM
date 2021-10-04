@@ -3,9 +3,9 @@
 #include <linux/kernel.h>
 #include <linux/gpio.h>			// GPIO functions
 #include <linux/interrupt.h>	// IRQ code
-#include <linux/kmod.h>			// call_usermodehelper
 #include <linux/types.h>		// uint_32
 #include "gpio_manager.h"
+#include "command_executor.h"
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Roger Miranda");
@@ -19,7 +19,6 @@ MODULE_VERSION("0.1");
 #define BTN_DEBOUNCE 0
 
 #define PROGRAM_NAME "F1"
-#define USER		"rogermiranda1000"
 
 typedef struct {
 	uint32_t gpio; // btn GPIO
@@ -75,6 +74,8 @@ static int __init erpi_gpio_init(void) {
 	
 	printk(KERN_INFO PROGRAM_NAME ": enabling kernel module...");
 	
+	command_executor_init();
+	
 	// LED
 	gpio_request(GPIO_LED1, "sysfs");			// request GPIO
 	gpio_direction_output(GPIO_LED1, 0);		// set in output mode and off
@@ -104,6 +105,8 @@ static void __exit erpi_gpio_exit(void) {
 		gpio_free(btns[x].gpio);
 	}
 	
+	command_executor_exit();
+	
 	// turn off LEDs & free
 	gpio_set_value(GPIO_LED1, 0);
 	gpio_unexport(GPIO_LED1);
@@ -116,8 +119,6 @@ static void __exit erpi_gpio_exit(void) {
 
 static irq_handler_t gpio_irq_handler(unsigned int irq, void *dev_id, struct pt_regs *regs) {
 	uint8_t x;
-	const char *args[] = { NULL, NULL }; // the command (1st argument) will be added later
-	const char *envp[] = { "HOME=/home/" USER, /*"SHELL=/bin/bash", "PWD=/home/" USER,*/ NULL };
 	
 	printk(KERN_INFO PROGRAM_NAME ": interrupt detected!");
 	
@@ -127,8 +128,7 @@ static irq_handler_t gpio_irq_handler(unsigned int irq, void *dev_id, struct pt_
 		printk(KERN_INFO PROGRAM_NAME ": button on GPIO%d pressed, running commands...", btns[x].gpio);
 		
 		gpio_set_value(btns[x].led_gpio, btns[x].toggle_on);
-		args[0] = btns[x].cmd;
-		call_usermodehelper(args[0], (char**)args, (char**)envp, UMH_NO_WAIT);
+		call_cmd(btns[x].cmd);
 		break;
 	}
 	return (irq_handler_t) IRQ_HANDLED; // announce IRQ handled
