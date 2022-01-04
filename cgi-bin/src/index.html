@@ -16,6 +16,14 @@
 				logout() {
 					return fetch('logout.sh');
 				}
+				
+				getLogs() {
+					return fetch('logs.sh').then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
 			};
 			
 			const searcher = new Searcher();
@@ -52,6 +60,16 @@
 			
 			<section id="logs" v-if="active">
 				<h1>Gestió de logs</h1>
+				
+				<article>
+					<h3>Últims accessos</h3>
+					
+				</article>
+				
+				<article>
+					<h3>Logs</h3>
+					<textarea readonly>{{logs}}</textarea>
+				</article>
 			</section>
 		</main>
 		
@@ -71,12 +89,20 @@
 			var logs_app = new Vue({
 				el: '#logs',
 				data: {
-					active: false
+					active: false,
+					logs: ''
 				},
 				methods: {
 					setActive: function(bool) {
 						this.active = bool;
 					}
+				},
+				beforeMount() {
+					searcher.getLogs().then((r)=>{
+						if (r.status === 200) {
+							this.logs = r.logs;
+						}
+					});
 				}
 			});
 		</script>
