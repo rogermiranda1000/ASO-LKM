@@ -27,11 +27,19 @@
 			}
 			main {
 				display: flex;
-				justify-content: center;
+				flex-direction: column;
+				justify-content: end;
 				align-items: center;
 				height: 100%;
 			}
+			button:hover {
+				cursor: pointer;
+			}
 			form {
+				position: absolute;
+  				top: 50%;
+  				left: 50%;
+  				transform: translate(-50%, -50%);
 				padding: 30px;
 				opacity: 0.75;
 				transition: padding .2s, opacity .2s , border-radius .2s;
@@ -62,16 +70,21 @@
 				width: 60%;
 			}
 			
-
 			.error , .info {
-				position: absolute;
+				position: relative;
    				width: 65%;
-   				bottom: 10px;
 				display: flex;
 				justify-content: center;
 				align-items: center;
-				padding: 30px;
+				padding: 25px;
 				font-weight: 500;
+				margin: 8px;
+				z-index: 10;
+				opacity: 0.8;
+				transition: opacity 0.2s;
+			}
+			.error:hover , .info:hover {
+				opacity: 1;
 			}
 			.error > button , .info > button {
 				position: absolute;
@@ -79,6 +92,7 @@
    				right: 2px;
 				background-color: transparent;
 				border: none;
+				z-index: 100;
 			}
 		</style>
 	</head>
