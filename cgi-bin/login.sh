@@ -8,9 +8,6 @@ if [ "$REQUEST_METHOD" != "POST" ]; then
 	exit 1
 fi
 
-echo "content-type: text/html; charset=utf-8"
-echo
-
 # extract post data
 declare -A post_info
 read post_data
@@ -19,6 +16,21 @@ post_info["$tmp1"]="$tmp2"
 read tmp1 tmp2 <<< `echo "$post_data" | cut -d "&" -f 2 | awk -F= '{ print $1 " " $2 }'`
 post_info["$tmp1"]="$tmp2"
 
-echo "${post_info[password]}" | su -l "${post_info[username]}" 2>login.log
-grep -c "Authentication failure" login.log
-grep -c "does not exist" login.log
+login_file="login.log"
+echo "${post_info[password]}" | su -l "${post_info[username]}" 2>"$login_file"
+if [ `grep -c "does not exist" "$login_file"` -gt 0 ]; then
+	echo "Status: 401"
+	echo "content-type: text/plain"
+	echo
+	echo "Invalid user"
+elif [ `grep -c "Authentication failure" "$login_file"` -gt 0 ]; then
+	echo "Status: 401"
+	echo "content-type: text/plain"
+	echo
+	echo "Invalid password"
+else
+	echo "content-type: text/plain"
+	echo
+	echo "{\"token\": \"t\"}"
+fi
+rm "$login_file"
