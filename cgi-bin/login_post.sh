@@ -39,7 +39,9 @@ elif [ `grep -c "Authentication failure" "$login_file"` -gt 0 ]; then
 	echo
 	echo "{\"err\": \"Invalid password\"}"
 else
-	echo "User ${post_info[username]} logged in." >> /var/log/website_manager.log
+	echo -n "User ${post_info[username]} logged in [" >> /var/log/website_manager.log
+	date '+%d-%m-%Y %H:%M' | tr -d '\n' >> /var/log/website_manager.log
+	echo "]" >> /var/log/website_manager.log
 	
 	echo "content-type: text/plain"
 	echo

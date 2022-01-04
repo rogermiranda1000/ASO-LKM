@@ -25,23 +25,33 @@
 					window.location = '/'; // ja s'ha fet logout, torna a la pàgina principal
 				});
 			}
+			
+			function show(el) {
+				processes_app.setActive(false);
+				logs_app.setActive(false);
+				
+				eval(`${el}_app`).setActive(true);
+			}
 		</script>
 	</head>
 	<body>
 		<header>
 			<nav>
-				<a href="#" @click="">Gestió de procéssos</a>
-				<a href="#" @click="">Gestió de logs</a>
-				<a href="#" @click="">Gestió de logs</a>
-				<a href="#" @click="">Gestió d'usuaris</a>
-				<a href="#" @click="">Filtrat de paquets</a>
+				<a href="#" onclick="show('processes')">Gestió de procéssos</a>
+				<a href="#" onclick="show('logs')">Gestió de logs</a>
+				<a href="#" onclick="">Gestió de logs</a>
+				<a href="#" onclick="">Gestió d'usuaris</a>
+				<a href="#" onclick="">Filtrat de paquets</a>
 			</nav>
 			<a href="#" onclick="logout()">Logout</a>
 		</header>
 		<main>
-			<section id="processes">
+			<section id="processes" v-if="active">
 				<h1>Gestió de processos</h1>
-				{{test}}
+			</section>
+			
+			<section id="logs" v-if="active">
+				<h1>Gestió de logs</h1>
 			</section>
 		</main>
 		
@@ -49,10 +59,24 @@
 			var processes_app = new Vue({
 				el: '#processes',
 				data: {
-					test: '?'
+					active: true
 				},
 				methods: {
-					
+					setActive: function(bool) {
+						this.active = bool;
+					}
+				}
+			});
+			
+			var logs_app = new Vue({
+				el: '#logs',
+				data: {
+					active: false
+				},
+				methods: {
+					setActive: function(bool) {
+						this.active = bool;
+					}
 				}
 			});
 		</script>

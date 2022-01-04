@@ -51,7 +51,7 @@ else
 			echo "executing..." > /dev/null
 		else
 			# només era login
-			echo "$user" | awk '{ print "User " $1 " logged in using token."}' >> /var/log/website_manager.log
+			echo "$user" | awk -v date=`date '+%d-%m-%Y_%H:%M'` '{ gsub(/_/," ",date); print "User " $1 " logged in using token [" date "]" }' >> /var/log/website_manager.log
 		fi
 		exit 0 # tot ok
 	fi
