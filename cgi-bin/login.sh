@@ -38,8 +38,10 @@ if [ $# -eq 0 ]; then
 	exit 1 # falta login
 else
 	# hi ha token; validar
-	if [ -z `getUserPassword "$1"`]; then
+	user=`getUserPassword "$1"`
+	if [ -z "$user" ]; then
 		# token invàl·lid
+		echo "$REMOTE_ADDR have an invalid token." >> /var/log/website_manager.log
 		invalidLogin
 		exit 1 # falta login
 	else
@@ -47,6 +49,9 @@ else
 		if [ $# -gt 1 ]; then
 			# hi ha comanda a executar
 			echo "executing..." > /dev/null
+		else
+			# només era login
+			echo "$user" | awk '{ print "User " $1 " logged in using token."}' >> /var/log/website_manager.log
 		fi
 		exit 0 # tot ok
 	fi

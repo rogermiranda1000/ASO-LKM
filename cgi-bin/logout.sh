@@ -9,14 +9,14 @@ function getToken() {
 token=`echo "$HTTP_COOKIE" | grep -P -o '(?<=token=)[^;]+'` # token de login
 cat "logins.txt" |
 	while read line; do
-		if [ `getToken "$line"` = "$1" ]; then
+		if [ `getToken "$line"` = "$token" ]; then
 			echo "$line" | awk '{ print "User " $1 " logged out."}' >> /var/log/website_manager.log
 			
 			echo "content-type: text/plain"
 			echo
 			echo "{\"status\": \"OK\"}"
 			
-			return 0
+			exit 0
 		fi
 	done
 
