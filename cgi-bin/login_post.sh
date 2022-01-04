@@ -11,7 +11,7 @@ if [ "$REQUEST_METHOD" != "POST" ]; then
 	echo "Status: 400"
 	echo "content-type: text/plain"
 	echo
-	echo "POST request expected"
+	echo "{\"err\": \"POST request expected\"}"
 	
 	exit 1
 fi
@@ -30,12 +30,12 @@ if [ `grep -c "does not exist" "$login_file"` -gt 0 ]; then
 	echo "Status: 401"
 	echo "content-type: text/plain"
 	echo
-	echo "Invalid user"
+	echo "{\"err\": \"Invalid user\"}"
 elif [ `grep -c "Authentication failure" "$login_file"` -gt 0 ]; then
 	echo "Status: 401"
 	echo "content-type: text/plain"
 	echo
-	echo "Invalid password"
+	echo "{\"err\": \"Invalid password\"}"
 else
 	echo "content-type: text/plain"
 	echo

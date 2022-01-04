@@ -1,15 +1,55 @@
 <!DOCTYPE html>
 <html>
 	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>Linux manager</title>
+		<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
 	</head>
 	<body>
-		<form action="login_post.sh" method="post" enctype="application/x-www-form-urlencoded">
-			<label for="name">Name</label>
-			<input type="text" id="name" name="username" />
-			<label for="password">Password</label>
-			<input type="password" id="password" name="password" />
-			<input type="submit" value="Login" />
-		</form>
+		<main id="vueRegion">
+			<form action="login_post.sh" onsubmit="return false;"> <!-- method="post" enctype="application/x-www-form-urlencoded" -->
+				<label for="name">Name</label>
+				<input type="text" id="name" v-model="username" />
+				<label for="password">Password</label>
+				<input type="password" id="password" v-model="password" />
+				<button @click="submit()">Login</button>
+			</form>
+		</main>
+		
+		<script>
+			class Searcher {
+				constructor() {}
+
+				loginPost(username, password) {
+					return fetch('login_post.sh', {
+								method: 'POST',
+								headers: {
+								  'Content-Type': 'application/x-www-form-urlencoded'
+								},
+								body: `username=${username}&password=${password}`
+							}).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+			};
+			
+			const searcher = new Searcher();
+			var app = new Vue({
+				el: '#vueRegion',
+				data: {
+					username: '',
+					password: ''
+				},
+				methods: {
+					submit: function() {
+						searcher.loginPost(this.username, this.password).then(e => console.log(e));
+					}
+				}
+			});
+		</script>
 	</body>
 </html>
