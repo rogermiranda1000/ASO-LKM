@@ -42,5 +42,5 @@ else
 	echo "${post_info[username]} ${post_info[password]}" >> logins.txt # afegir al fitxer de logins
 	echo -n "{\"token\": \""
 	getToken "${post_info[username]}" "${post_info[password]}"
-	echo -n "\"}"
+	echo "\"}"
 fi
