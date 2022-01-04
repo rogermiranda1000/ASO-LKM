@@ -10,7 +10,7 @@ token=`echo "$HTTP_COOKIE" | grep -P -o '(?<=token=)[^;]+'` # token de login
 cat "logins.txt" |
 	while read line; do
 		if [ `getToken "$line"` = "$token" ]; then
-			echo "$line" | awk -v date=`date '+%d-%m-%Y_%H:%M'` '{ gsub(/_/," ",date); print "User " $1 " logged out [" date "]" }' >> /var/log/website_manager.log
+			logger -p local7.info `echo "$line" | awk  '{ print "User " $1 " logged out." }'`
 			
 			echo "content-type: text/plain"
 			echo
