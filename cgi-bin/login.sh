@@ -35,18 +35,19 @@ function getUserPassword() {
 if [ $# -eq 0 ]; then
 	# no hi ha token -> s'ha de fer login
 	requestLogin
+	exit 1 # falta login
 else
 	# hi ha token; validar
 	if [ -z `getUserPassword "$1"`]; then
 		# token invàl·lid
 		invalidLogin
+		exit 1 # falta login
 	else
-		echo "content-type: text/html; charset=utf-8"
-		echo
 		# token vàl·lid
 		if [ $# -gt 1 ]; then
 			# hi ha comanda a executar
-			echo "executing..."
+			echo "executing..." > /dev/null
 		fi
+		exit 0 # tot ok
 	fi
 fi
