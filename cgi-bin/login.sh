@@ -50,7 +50,9 @@ else
 		if [ $# -gt 1 ]; then
 			# hi ha comanda a executar
 			shift # elimina el token dels arguments
-			echo "$password" | su -l "$user" -c "$*" | cut -c 11- # obtè l'execució i elimina 'Password: '
+			tmp=`mktemp`
+			echo "$password" | su -l "$user" -c "$*" 2>"$tmp" # obtè l'execució i elimina 'Password: '
+			cut -c 11- "$tmp" # elimina el "Password: "
 			logger -p local7.info "User $user running '$*'..."
 		else
 			# només era login

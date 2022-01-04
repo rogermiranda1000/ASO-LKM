@@ -7,7 +7,13 @@
 		<title>Linux manager</title>
 		<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
 		<style>
+			.sorting-asc::after {
+				content: " [/\\]";
+			}
 			
+			.sorting-desc::after {
+				content: " [v]";
+			}
 		</style>
 		<script>
 			class Searcher {
@@ -77,14 +83,14 @@
 				
 				<table>
 				  <tr>
-					<th>Nom</th>
-					<th>Usuari</th>
-					<th>PID</th>
-					<th>CPU</th>
-					<th>RAM</th>
+					<th v-bind:class="{ 'sorting-asc': sort_by === 'command' && !desc, 'sorting-desc': sort_by === 'command' && desc }" @click="setSort('command')">Nom</th>
+					<th v-bind:class="{ 'sorting-asc': sort_by === 'user' && !desc, 'sorting-desc': sort_by === 'user' && desc }" @click="setSort('user')">Usuari</th>
+					<th v-bind:class="{ 'sorting-asc': sort_by === 'pid' && !desc, 'sorting-desc': sort_by === 'pid' && desc }" @click="setSort('pid')">PID</th>
+					<th v-bind:class="{ 'sorting-asc': sort_by === 'cpu' && !desc, 'sorting-desc': sort_by === 'cpu' && desc }" @click="setSort('cpu')">CPU</th>
+					<th v-bind:class="{ 'sorting-asc': sort_by === 'mem' && !desc, 'sorting-desc': sort_by === 'mem' && desc }" @click="setSort('mem')">RAM</th>
 					<th></th>
 				  </tr>
-				  <tr v-for="p in processes">
+				  <tr v-for="p in sortedProcesses">
 					<td>{{p.command}}</td>
 					<td>{{p.user}}</td>
 					<td>{{p.pid}}</td>
@@ -130,10 +136,11 @@
 					ram_usage: '',
 					disc_usage: '',
 					processes: [],
+					sortedProcesses: [],
 					
 					/* sort variables */
-					sort_by: 'name',
-					asc: true
+					sort_by: 'user',
+					desc: false
 				},
 				methods: {
 					setActive: function(bool) {
@@ -143,7 +150,7 @@
 						return `${Math.trunc(this.processes.reduce((acum,curr)=>acum+curr.cpu, 0)*100)}%`;
 					},
 					kill: function(pid) {
-						console.log(searcher.killProcess(pid));
+						searcher.killProcess(pid).then((e)=>console.log(e.result));
 					},
 					load: function() {
 						searcher.getProcesses().then((r)=>{
@@ -152,6 +159,7 @@
 								this.ram_usage = `${Math.trunc(r.ram_usage*100)}%`
 								this.disc_usage = `${Math.trunc(r.disc_usage*100)}%`;
 								this.processes = r.processes;
+								this.reloadSortedProcesses();
 								
 								if (this.reload) setTimeout(this.load, 1500); // torna a cridar en 2s
 							}
@@ -159,6 +167,24 @@
 					},
 					reloadChanged: function() {
 						if (this.reload) this.load();
+					},
+					reloadSortedProcesses: function() {
+						this.sortedProcesses =
+							this.processes.sort((a,b)=>{
+								if (this.desc) {
+									if (a[this.sort_by] > b[this.sort_by]) return -1;
+									return a[this.sort_by] < b[this.sort_by];
+								}
+								else {
+									if (a[this.sort_by] < b[this.sort_by]) return -1;
+									return a[this.sort_by] > b[this.sort_by];
+								}
+							});
+					},
+					setSort: function(criteria) {
+						if (this.sort_by == criteria) this.desc = !this.desc; // s'ha clickat el mateix, fer el toggle
+						else this.sort_by = criteria;
+						this.reloadSortedProcesses();
 					}
 				},
 				beforeMount() {
