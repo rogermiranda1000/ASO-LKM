@@ -6,6 +6,11 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>Linux manager</title>
 		<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+		<style>
+			.error {
+				background-color: red;
+			}
+		</style>
 	</head>
 	<body>
 		<main id="vueRegion">
@@ -68,7 +73,10 @@
 					appendError: function(err) {
 						let id = 0;
 						if (this.errors.length > 0) id = this.errors[this.errors.length - 1].id + 1;
+						
 						this.errors.push({id:id, msg:err});
+						
+						setTimeout(()=>this.discardError(id), 5000);
 					},
 					discardError: function(error_id) {
 						this.errors = this.errors.filter(e => e.id !== error_id);
