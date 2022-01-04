@@ -8,7 +8,7 @@ function requestLogin() {
 function invalidLogin() {
 	html=`requestLogin`
 	echo "${html::-15}" # remove "</body></html>"
-	echo "<div class=\"error\">Token invàl·lid; has de tornar a fer login.</div>"
+	echo "<script>app.appendError('Token invàl·lid; has de tornar a fer login.');</script>"
 	echo "</body></html>"
 }
 

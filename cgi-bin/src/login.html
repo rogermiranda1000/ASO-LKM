@@ -14,8 +14,13 @@
 				<input type="text" id="name" v-model="username" />
 				<label for="password">Password</label>
 				<input type="password" id="password" v-model="password" />
-				<button @click="submit()">Login</button>
+				<button @click="submit()" :disabled='loading'>Login</button>
 			</form>
+			
+			<div class="error" v-for="error in errors">
+				{{error.msg}}
+				<button @click="discardError(error.id)">x</button>
+			</div>
 		</main>
 		
 		<script>
@@ -42,11 +47,31 @@
 				el: '#vueRegion',
 				data: {
 					username: '',
-					password: ''
+					password: '',
+					loading: false,
+					errors: []
 				},
 				methods: {
 					submit: function() {
-						searcher.loginPost(this.username, this.password).then(e => console.log(e));
+						this.loading = true;
+						
+						searcher.loginPost(this.username, this.password).then(result => {
+							this.loading = false;
+							
+							if (result.status !== 200) this.appendError(result.err);
+							else {
+								document.cookie = `token=${result.token}`; // guarda el token
+								window.location = '/'; // ja s'ha fet login, torna a la pàgina principal
+							}
+						});
+					},
+					appendError: function(err) {
+						let id = 0;
+						if (this.errors.length > 0) id = this.errors[this.errors.length - 1].id + 1;
+						this.errors.push({id:id, msg:err});
+					},
+					discardError: function(error_id) {
+						this.errors = this.errors.filter(e => e.id !== error_id);
 					}
 				}
 			});
