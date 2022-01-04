@@ -32,6 +32,10 @@
 								});
 							});
 				}
+				
+				killProcess(pid) {
+					return fetch(`kill.sh?pid=${pid}`);
+				}
 			};
 			
 			const searcher = new Searcher();
@@ -64,6 +68,31 @@
 		<main>
 			<section id="processes" v-if="active">
 				<h1>Gestió de processos</h1>
+				
+				<div>Temps encès: <span>{{uptime}}</span></div>
+				<div>CPU: <span>{{cpu_usage()}}</span></div>
+				<div>RAM: <span>{{ram_usage}}</span></div>
+				<div>Disc: <span>{{disc_usage}}</span></div>
+				<div>Auto-reload <input type="checkbox" v-model="reload" @change="reloadChanged()" /></div>
+				
+				<table>
+				  <tr>
+					<th>Nom</th>
+					<th>Usuari</th>
+					<th>PID</th>
+					<th>CPU</th>
+					<th>RAM</th>
+					<th></th>
+				  </tr>
+				  <tr v-for="p in processes">
+					<td>{{p.command}}</td>
+					<td>{{p.user}}</td>
+					<td>{{p.pid}}</td>
+					<td>{{Math.trunc(p.cpu*100)}}%</td>
+					<td>{{Math.trunc(p.mem*100)}}%</td>
+					<td><button @click="kill(p.pid)">x</button></td>
+				  </tr>
+				</table>
 			</section>
 			
 			<section id="logs" v-if="active">
@@ -95,6 +124,12 @@
 				el: '#processes',
 				data: {
 					active: true,
+					reload: true,
+					
+					uptime: '',
+					ram_usage: '',
+					disc_usage: '',
+					processes: [],
 					
 					/* sort variables */
 					sort_by: 'name',
@@ -103,12 +138,31 @@
 				methods: {
 					setActive: function(bool) {
 						this.active = bool;
+					},
+					cpu_usage: function() {
+						return `${Math.trunc(this.processes.reduce((acum,curr)=>acum+curr.cpu, 0)*100)}%`;
+					},
+					kill: function(pid) {
+						console.log(searcher.killProcess(pid));
+					},
+					load: function() {
+						searcher.getProcesses().then((r)=>{
+							if (r.status === 200) {
+								this.uptime = r.uptime;
+								this.ram_usage = `${Math.trunc(r.ram_usage*100)}%`
+								this.disc_usage = `${Math.trunc(r.disc_usage*100)}%`;
+								this.processes = r.processes;
+								
+								if (this.reload) setTimeout(this.load, 1500); // torna a cridar en 2s
+							}
+						});
+					},
+					reloadChanged: function() {
+						if (this.reload) this.load();
 					}
 				},
 				beforeMount() {
-					searcher.getProcesses().then((r)=>{
-						console.log(r);
-					});
+					this.load();
 				}
 			});
 			
@@ -122,15 +176,19 @@
 				methods: {
 					setActive: function(bool) {
 						this.active = bool;
+						if (bool) this.load();
+					},
+					load: function() {
+						searcher.getLogs().then((r)=>{
+							if (r.status === 200) {
+								this.last = r.last;
+								this.logs = r.logs;
+							}
+						});
 					}
 				},
 				beforeMount() {
-					searcher.getLogs().then((r)=>{
-						if (r.status === 200) {
-							this.last = r.last;
-							this.logs = r.logs;
-						}
-					});
+					this.load();
 				}
 			});
 		</script>

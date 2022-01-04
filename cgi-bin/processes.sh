@@ -29,12 +29,12 @@ else
 	echo "content-type: text/plain"
 	echo
 	echo -n "{\"uptime\":\""
-	uptime -s | tr -d '\n'
+	uptime | awk '{ printf("%s", $1) }'
 	echo -n "\",\"disc_usage\":"
 	df -h | grep '\s/$' | awk '{ printf("%.2f", $5/100) }'
 	top_result=`top -bn1`
 	# en la primera línea de 'top', surt al final 'load average: <avg 1>, <avg 2>, <avg 3>'
 	# en la quarta línea de 'top', surt 'MiB Mem :    <MiB total> total,    <MiB free> free,     <MiB used> used'
-	echo "$top_result" | awk 'NR==1{ printf(",\"cpu_usage\":%.2f", $(NF-2)) } NR==2{ count=$2 } NR==4{ printf(",\"ram_usage\":%.2f,\"processes\":[", $8 / $4) } NR>7{ printf("{\"pid\":%d,\"user\":\"%s\",\"command\":\"%s\",\"cpu\":%.2f,\"mem\":%.2f}", $1, $2, $12, $9/100, $10/100); if (NR-8 < count-1) {printf(",")} }'
+	echo "$top_result" | awk 'NR==1{ printf(",\"average_cpu_usage\":%.2f", $(NF-2)) } NR==2{ count=$2 } NR==4{ printf(",\"ram_usage\":%.2f,\"processes\":[", $8 / $4) } NR>7{ printf("{\"pid\":%d,\"user\":\"%s\",\"command\":\"%s\",\"cpu\":%.2f,\"mem\":%.2f}", $1, $2, $12, $9/100, $10/100); if (NR-8 < count-1) {printf(",")} }'
 	echo "]}"
 fi
