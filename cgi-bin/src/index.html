@@ -63,7 +63,16 @@
 				
 				<article>
 					<h3>Últims accessos</h3>
-					
+					<table>
+					  <tr>
+						<th>Usuari</th>
+						<th>Data</th>
+					  </tr>
+					  <tr v-for="l in last">
+						<td>{{l.user}}</td>
+						<td>{{l.date}}</td>
+					  </tr>
+					</table>
 				</article>
 				
 				<article>
@@ -90,6 +99,7 @@
 				el: '#logs',
 				data: {
 					active: false,
+					last: [],
 					logs: ''
 				},
 				methods: {
@@ -100,6 +110,7 @@
 				beforeMount() {
 					searcher.getLogs().then((r)=>{
 						if (r.status === 200) {
+							this.last = r.last;
 							this.logs = r.logs;
 						}
 					});

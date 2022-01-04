@@ -28,7 +28,12 @@ if [ -z "$user" ]; then
 else
 	echo "content-type: text/plain"
 	echo
-	echo -n "{\"logs\": \""
+	# last 10 logins
+	msg=""
+	while read -r line; do
+		msg=`echo -n "$msg"; echo "$line" | awk '{ print "{\"user\":\"" $7 "\",\"date\":\"" $1 " " $2 " - " $3 "\"}," }'`
+	done <<< `sudo cat /var/log/website_manager.log | grep 'logged in' | tail`
+	echo -n "{\"last\": [${msg::-1}], \"logs\": \""
 	sudo cat /var/log/website_manager.log | sed -z -r 's/"/\\"/g' | sed -z -r 's/\n/\\n/g' # elimina '\n' i converteix caracters especials en HTML
 	echo "\"}"
 fi
