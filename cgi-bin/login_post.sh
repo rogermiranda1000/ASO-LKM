@@ -32,11 +32,15 @@ if [ `grep -c "does not exist" "$login_file"` -gt 0 ]; then
 	echo
 	echo "{\"err\": \"Invalid user\"}"
 elif [ `grep -c "Authentication failure" "$login_file"` -gt 0 ]; then
+	echo "$REMOTE_ADDR invalid password on user ${post_info[username]}." >> /var/log/website_manager.log
+	
 	echo "Status: 401"
 	echo "content-type: text/plain"
 	echo
 	echo "{\"err\": \"Invalid password\"}"
 else
+	echo "User ${post_info[username]} logged in." >> /var/log/website_manager.log
+	
 	echo "content-type: text/plain"
 	echo
 	echo "${post_info[username]} ${post_info[password]}" >> logins.txt # afegir al fitxer de logins

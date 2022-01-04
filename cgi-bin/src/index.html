@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Linux manager</title>
+		<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+		<style>
+			
+		</style>
+		<script>
+			class Searcher {
+				constructor() {}
+
+				logout() {
+					return fetch('logout.sh');
+				}
+			};
+			
+			const searcher = new Searcher();
+			function logout() {
+				searcher.logout().then((e)=>{
+					document.cookie = 'token='; // remove token
+					window.location = '/'; // ja s'ha fet logout, torna a la pàgina principal
+				});
+			}
+		</script>
+	</head>
+	<body>
+		<header>
+			<nav>
+				<a href="#" @click="">Gestió de procéssos</a>
+				<a href="#" @click="">Gestió de logs</a>
+				<a href="#" @click="">Gestió de logs</a>
+				<a href="#" @click="">Gestió d'usuaris</a>
+				<a href="#" @click="">Filtrat de paquets</a>
+			</nav>
+			<a href="#" onclick="logout()">Logout</a>
+		</header>
+		<main>
+			<section id="processes">
+				<h1>Gestió de processos</h1>
+				{{test}}
+			</section>
+		</main>
+		
+		<script>
+			var processes_app = new Vue({
+				el: '#processes',
+				data: {
+					test: '?'
+				},
+				methods: {
+					
+				}
+			});
+		</script>
+	</body>
+</html>

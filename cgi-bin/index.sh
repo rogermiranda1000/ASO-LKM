@@ -1,6 +1,6 @@
 #!/bin/bash
 
-token=`echo "$HTTP_COOKIE" | grep -P -o '(?<=token=).+(?=(; )|$)'` # token de login (si en té)
+token=`echo "$HTTP_COOKIE" | grep -P -o '(?<=token=)[^;]+'` # token de login (si en té)
 ./login.sh "$token"
 ret=$?
 if [ $ret -ne 0 ]; then
@@ -9,5 +9,5 @@ fi
 
 echo "content-type: text/html; charset=utf-8"
 echo
-echo ":)"
+cat "src/index.html"
 #echo "" | su -l rogermiranda1000 -c 'whoami'
