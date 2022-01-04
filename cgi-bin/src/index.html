@@ -7,6 +7,82 @@
 		<title>Linux manager</title>
 		<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
 		<style>
+			.shadow {
+				box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
+			}
+			* {
+				font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+			}
+			body {
+				margin: 0px;
+			}
+			header {
+				display: flex;
+				flex-direction: column;
+				justify-content: space-between;
+
+				background-color: #B8E1FF;
+				position: absolute;
+				top: 0px;
+				left: 0px;
+				height: calc(100% - 50px);
+				width: 250px;
+				padding: 25px;;
+			}
+			main {
+				position: absolute;
+				top: 0px;
+				left: 300px;
+				padding: 40px 70px 70px 70px;
+				width: calc(100% - 440px);
+				height: calc(100% - 110px);
+
+				display: flex;
+				flex-direction: row;
+			}
+			header > nav {
+				display: flex;
+				flex-direction: column;
+				align-items: flex-start;
+				justify-content: flex-start;
+			}
+			a {
+				text-decoration: none;
+				color: black;
+				text-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
+				font-size: large;
+				margin: 20px 20px 20px 5px;
+				font-weight: 600;
+			}
+
+			h1 {
+				margin-bottom: 35px;
+				font-size: xx-large;
+			}
+			h3 {
+				margin-top: 35px;
+				font-size: large;
+			}
+			table {
+				border-spacing: 0px 0px;
+			}
+			textarea {
+				width: 800px;
+				height: 320px;
+				font-size: medium;
+				padding: 10px;
+				border: none;
+				background-color: #F1F1F1;
+			}
+			td , th {
+				padding: 6px 30px 6px 30px;
+			}
+			tr:nth-child(2n) {
+				background: #F8F8F8;
+			}
+			tr:nth-child(2n - 1) {
+				background: #F1F1F1;
+			}
 			
 		</style>
 		<script>
