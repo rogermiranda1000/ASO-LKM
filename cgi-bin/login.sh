@@ -1,36 +1,52 @@
 #!/bin/bash
-if [ "$REQUEST_METHOD" != "POST" ]; then
-	echo "Status: 400"
-	echo "content-type: text/plain"
+function requestLogin() {
+	echo "content-type: text/html; charset=utf-8"
 	echo
-	echo "POST request expected"
+	cat "src/login.html"
+}
+
+function invalidLogin() {
+	html=`requestLogin`
+	echo "${html::-15}" # remove "</body></html>"
+	echo "<div class=\"error\">Token invàl·lid; has de tornar a fer login.</div>"
+	echo "</body></html>"
+}
+
+# Obtè el token d'usuari
+# @param '<username> <password>'
+function getToken() {
+	echo -n "$1" | md5sum | awk '{ printf("%s", $1) }'
+}
+
+# Obtè el username i password a partir d'un token
+# @param token
+function getUserPassword() {
+	cat "logins.txt" |
+		while read line; do
+			if [ `getToken "$line"` = "$1" ]; then
+				echo "$line"
+				return 0
+			fi
+		done
 	
-	exit 1
-fi
+	return 1 # not found
+}
 
-# extract post data
-declare -A post_info
-read post_data
-read tmp1 tmp2 <<< `echo "$post_data" | cut -d "&" -f 1 | awk -F= '{ print $1 " " $2 }'`
-post_info["$tmp1"]="$tmp2"
-read tmp1 tmp2 <<< `echo "$post_data" | cut -d "&" -f 2 | awk -F= '{ print $1 " " $2 }'`
-post_info["$tmp1"]="$tmp2"
-
-login_file="login.log"
-echo "${post_info[password]}" | su -l "${post_info[username]}" 2>"$login_file"
-if [ `grep -c "does not exist" "$login_file"` -gt 0 ]; then
-	echo "Status: 401"
-	echo "content-type: text/plain"
-	echo
-	echo "Invalid user"
-elif [ `grep -c "Authentication failure" "$login_file"` -gt 0 ]; then
-	echo "Status: 401"
-	echo "content-type: text/plain"
-	echo
-	echo "Invalid password"
+if [ $# -eq 0 ]; then
+	# no hi ha token -> s'ha de fer login
+	requestLogin
 else
-	echo "content-type: text/plain"
-	echo
-	echo "{\"token\": \"t\"}"
+	# hi ha token; validar
+	if [ -z `getUserPassword "$1"`]; then
+		# token invàl·lid
+		invalidLogin
+	else
+		echo "content-type: text/html; charset=utf-8"
+		echo
+		# token vàl·lid
+		if [ $# -gt 1 ]; then
+			# hi ha comanda a executar
+			echo "executing..."
+		fi
+	fi
 fi
-rm "$login_file"

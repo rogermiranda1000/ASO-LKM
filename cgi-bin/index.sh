@@ -1,6 +1,5 @@
 #!/bin/bash
-echo "content-type: text/html"
-echo
-cat "src/login.html"
+token=`echo "$HTTP_COOKIE" | grep -P -o '(?<=token=).+(?=(; )|$)'`
+./login.sh "$token"
 
 #echo "" | su -l rogermiranda1000 -c 'whoami'
