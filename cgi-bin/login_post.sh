@@ -32,16 +32,14 @@ if [ `grep -c "does not exist" "$login_file"` -gt 0 ]; then
 	echo
 	echo "{\"err\": \"Invalid user\"}"
 elif [ `grep -c "Authentication failure" "$login_file"` -gt 0 ]; then
-	echo "$REMOTE_ADDR invalid password on user ${post_info[username]}." >> /var/log/website_manager.log
+	logger -p local7.warning "$REMOTE_ADDR invalid password on user ${post_info[username]}."
 	
 	echo "Status: 401"
 	echo "content-type: text/plain"
 	echo
 	echo "{\"err\": \"Invalid password\"}"
 else
-	echo -n "User ${post_info[username]} logged in [" >> /var/log/website_manager.log
-	date '+%d-%m-%Y %H:%M' | tr -d '\n' >> /var/log/website_manager.log
-	echo "]" >> /var/log/website_manager.log
+	logger -p local7.info "User ${post_info[username]} logged in."
 	
 	echo "content-type: text/plain"
 	echo

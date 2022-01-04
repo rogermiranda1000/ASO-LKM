@@ -41,7 +41,7 @@ else
 	user=`getUserPassword "$1"`
 	if [ -z "$user" ]; then
 		# token invàl·lid
-		echo "$REMOTE_ADDR have an invalid token." >> /var/log/website_manager.log
+		logger -p local7.warning "$REMOTE_ADDR have an invalid token."
 		invalidLogin
 		exit 1 # falta login
 	else
@@ -51,7 +51,7 @@ else
 			echo "executing..." > /dev/null
 		else
 			# només era login
-			echo "$user" | awk -v date=`date '+%d-%m-%Y_%H:%M'` '{ gsub(/_/," ",date); print "User " $1 " logged in using token [" date "]" }' >> /var/log/website_manager.log
+			logger -p local7.info `echo "$user" | awk  '{ print "User " $1 " logged in using token." }'`
 		fi
 		exit 0 # tot ok
 	fi

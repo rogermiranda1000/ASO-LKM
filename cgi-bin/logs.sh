@@ -29,6 +29,6 @@ else
 	echo "content-type: text/plain"
 	echo
 	echo -n "{\"logs\": \""
-	cat /var/log/website_manager.log | recode utf-8..html | sed -z -r 's/\n/\\n/g' # elimina '\n' i converteix caracters especials en HTML
+	sudo cat /var/log/website_manager.log | sed -z -r 's/"/\\"/g' | sed -z -r 's/\n/\\n/g' # elimina '\n' i converteix caracters especials en HTML
 	echo "\"}"
 fi
