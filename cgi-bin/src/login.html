@@ -14,26 +14,7 @@
 			.info {
 				background-color: rgb(95, 175, 95);
 			}
-		</style>
-	</head>
-	<body>
-		<main id="vueRegion">
-			<form class="shadow" action="login_post.sh" onsubmit="return false;"> <!-- method="post" enctype="application/x-www-form-urlencoded" -->
-				<label for="name">Name</label>
-				<input type="text" id="name" v-model="username" />
-				<label for="password">Password</label>
-				<input type="password" id="password" v-model="password" />
-				<button class="shadow" @click="submit()" :disabled='loading'>Login</button>
-				<button class="shadow" @click="create()" :disabled='loading'>Crear</button>
-			</form>
-			
-			<div v-bind:class="i.style" v-for="i in info">
-				{{i.msg}}
-				<button @click="discardError(i.id)">x</button>
-			</div>
-		</main>
 
-		<style>
 			.shadow , .error , .info {
 				box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
 			}
@@ -100,6 +81,23 @@
 				border: none;
 			}
 		</style>
+	</head>
+	<body>
+		<main id="vueRegion">
+			<form class="shadow" action="login_post.sh" onsubmit="return false;"> <!-- method="post" enctype="application/x-www-form-urlencoded" -->
+				<label for="name">Name</label>
+				<input type="text" id="name" v-model="username" />
+				<label for="password">Password</label>
+				<input type="password" id="password" v-model="password" />
+				<button class="shadow" @click="submit()" :disabled='loading'>Login</button>
+				<button class="shadow" @click="create()" :disabled='loading'>Crear</button>
+			</form>
+			
+			<div v-bind:class="i.style" v-for="i in info">
+				{{i.msg}}
+				<button @click="discardError(i.id)">x</button>
+			</div>
+		</main>
 
 		<script>
 			class Searcher {
