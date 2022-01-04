@@ -17,6 +17,14 @@
 					return fetch('logout.sh');
 				}
 				
+				getProcesses() {
+					return fetch('processes.sh').then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
 				getLogs() {
 					return fetch('logs.sh').then(response => {
 								return response.json().then(e => {
@@ -86,12 +94,21 @@
 			var processes_app = new Vue({
 				el: '#processes',
 				data: {
-					active: true
+					active: true,
+					
+					/* sort variables */
+					sort_by: 'name',
+					asc: true
 				},
 				methods: {
 					setActive: function(bool) {
 						this.active = bool;
 					}
+				},
+				beforeMount() {
+					searcher.getProcesses().then((r)=>{
+						console.log(r);
+					});
 				}
 			});
 			
