@@ -40,7 +40,11 @@
 				}
 				
 				killProcess(pid) {
-					return fetch(`kill.sh?pid=${pid}`);
+					return fetch(`kill.sh?pid=${pid}`).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
 				}
 			};
 			
@@ -99,6 +103,11 @@
 					<td><button @click="kill(p.pid)">x</button></td>
 				  </tr>
 				</table>
+				
+				<div v-bind:class="i.style" v-for="i in info">
+					{{i.msg}}
+					<button @click="discardError(i.id)">x</button>
+				</div>
 			</section>
 			
 			<section id="logs" v-if="active">
@@ -138,6 +147,8 @@
 					processes: [],
 					sortedProcesses: [],
 					
+					info: [],
+					
 					/* sort variables */
 					sort_by: 'user',
 					desc: false
@@ -150,7 +161,10 @@
 						return `${Math.trunc(this.processes.reduce((acum,curr)=>acum+curr.cpu, 0)*100)}%`;
 					},
 					kill: function(pid) {
-						searcher.killProcess(pid).then((e)=>console.log(e.result));
+						searcher.killProcess(pid).then((e)=>{
+							if (e.status === 200) this.appendInfo(e.result);
+							else this.appendError(e.err);
+						});
 					},
 					load: function() {
 						searcher.getProcesses().then((r)=>{
@@ -185,6 +199,25 @@
 						if (this.sort_by == criteria) this.desc = !this.desc; // s'ha clickat el mateix, fer el toggle
 						else this.sort_by = criteria;
 						this.reloadSortedProcesses();
+					},
+					
+					/* popup functions */
+					appendVar(_msg, _style) {
+						let id = 0;
+						if (this.info.length > 0) id = this.info[this.info.length - 1].id + 1;
+						
+						this.info.push({id:id, msg:_msg, style:_style});
+						
+						setTimeout(()=>this.discardVar(id), 8000);
+					},
+					appendError: function(err) {
+						this.appendVar(err, 'error');
+					},
+					appendInfo: function(msg) {
+						this.appendVar(msg, 'info');
+					},
+					discardVar: function(error_id) {
+						this.info = this.info.filter(e => e.id !== error_id);
 					}
 				},
 				beforeMount() {
