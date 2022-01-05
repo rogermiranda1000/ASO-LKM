@@ -38,20 +38,25 @@ if [ $# -eq 0 ]; then
 	exit 1 # falta login
 else
 	# hi ha token; validar
-	user=`getUserPassword "$1"`
-	if [ -z "$user" ]; then
+	user_readed=`getUserPassword "$1"`
+	if [ -z "$user_readed" ]; then
 		# token invàl·lid
 		logger -p local7.warning "$REMOTE_ADDR have an invalid token."
 		invalidLogin
 		exit 1 # falta login
 	else
 		# token vàl·lid
+		read user password <<< `echo "$user_readed"`
 		if [ $# -gt 1 ]; then
 			# hi ha comanda a executar
-			echo "executing..." > /dev/null
+			shift # elimina el token dels arguments
+			tmp=`mktemp`
+			echo "$password" | su -l "$user" -c "$*" 2>"$tmp" # obtè l'execució i elimina 'Password: '
+			cut -c 11- "$tmp" # elimina el "Password: "
+			logger -p local7.info "User $user running '$*'..."
 		else
 			# només era login
-			logger -p local7.info `echo "$user" | awk  '{ print "User " $1 " logged in using token." }'`
+			logger -p local7.info "User $user logged in using token."
 		fi
 		exit 0 # tot ok
 	fi

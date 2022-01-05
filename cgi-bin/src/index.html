@@ -7,11 +7,13 @@
 		<title>Linux manager</title>
 		<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
 		<style>
-			.shadow {
-				box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
-			}
+			/* general CSS */
 			* {
 				font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+				--header-width: 300px;
+			}
+			.shadow , .error , .info {
+				box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
 			}
 			body {
 				margin: 0px;
@@ -20,14 +22,13 @@
 				display: flex;
 				flex-direction: column;
 				justify-content: space-between;
-
+	
 				background-color: #B8E1FF;
 				position: absolute;
 				top: 0px;
 				left: 0px;
-				height: calc(100% - 50px);
-				width: 250px;
-				padding: 25px;
+				height: calc(100%);
+				width: var(--header-width);
 			}
 			main {
 				position: absolute;
@@ -36,25 +37,69 @@
 				padding: 40px 70px 70px 70px;
 				width: calc(100% - 440px);
 				height: calc(100% - 110px);
-
+	
 				display: flex;
 				flex-direction: row;
 			}
+			
+			.error , .info {
+				position: relative;
+   				width: 65%;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				padding: 25px;
+				font-weight: 500;
+				margin: 8px 8px 8px 17%;
+				z-index: 10;
+				opacity: 0.8;
+				transition: opacity 0.2s;
+			}
+			.error:hover , .info:hover {
+				opacity: 1;
+			}
+			.error > button , .info > button {
+				position: absolute;
+   				top: 2px;
+   				right: 2px;
+				background-color: transparent;
+				border: none;
+				z-index: 100;
+			}
+			.error {
+				background-color: rgb(230, 89, 89);
+			}
+			
+			.info {
+				background-color: rgb(95, 175, 95);
+			}
+
 			header > nav {
 				display: flex;
 				flex-direction: column;
 				align-items: flex-start;
 				justify-content: flex-start;
 			}
-			a {
+			header a {
 				text-decoration: none;
 				color: black;
 				text-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
 				font-size: large;
-				margin: 30px 20px 30px 5px;
 				font-weight: 600;
 			}
-
+			header > nav > a {
+				width: 76%;
+				padding: 10% 12% 10% 12%;
+			}
+			header > div > a {
+				padding: 10% 0px 10% 12%;
+			}
+			.selected {
+				background-color: #20567c;
+				color: white;
+				box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.705);
+			}
+	
 			h1 {
 				margin-bottom: 35px;
 				font-size: xx-large;
@@ -66,14 +111,7 @@
 			table {
 				border-spacing: 0px 0px;
 			}
-			textarea {
-				width: 800px;
-				height: 320px;
-				font-size: medium;
-				padding: 10px;
-				border: none;
-				background-color: #F1F1F1;
-			}
+	
 			td , th {
 				padding: 6px 30px 6px 30px;
 			}
@@ -97,10 +135,95 @@
 				display: flex;
 				align-items: center;
 			}
-			.pointer:hover {
+			.pointer:hover , button:hover {
 				cursor: pointer;
 			}
+	
+			.horizontal {
+				display: flex;
+				flex-direction: row;
+				justify-content: space-between;
+			}
 			
+			/* processes CSS */
+			.sorting-asc::after {
+				content: " [/\\]";
+			}
+			.sorting-desc::after {
+				content: " [v]";
+			}
+			#statsHead {
+				margin-bottom: 20px;
+				width: 100%;
+			}
+			#statsHead > div:first-child {
+				background-color: #C5EAFF;
+				padding: 10px;
+			}
+			#statsHead > div:nth-child(2) {
+				display: flex;
+			}
+			#statsHead > div > div {
+				background-color: #84D3FF;
+				padding: 10px;
+				margin-left: 15px;
+			}
+			#statsHead div > span {
+				font-weight: 1000;
+			}
+			#tableProcess {
+				overflow-y: scroll;
+				table-layout: fixed;
+				height: 70vh;
+				display: block;
+			}
+			#tableProcess tr:first-child{
+				position: sticky;
+				top: 0;
+				background-color: #84D3FF;
+			}
+			/*#tableProcess tr:first-child > th {
+				width: calc(70vh / 6);
+			}*/
+			#processes, #tableProcess, #tableProcess tr:first-child > th {
+				width: 100%;
+			}
+			#tableProcess tr > td {
+				text-align: center;
+			}
+			#processes table button {
+				background-color: red;
+				transition: background-color 0.3s;
+				color: white;
+				font-weight: bolder;
+				font-size: large;
+				border: none;
+				border-radius: 100px;
+				box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
+				width: 28px;
+				height: 28px;
+			}
+			#processes table button:hover {
+				background-color: rgb(150, 26, 26);
+			}
+	
+			/* logs CSS */
+			textarea {
+				width: 50vw;
+				height: 33vh;
+				font-size: medium;
+				padding: 10px;
+				border: none;
+				background-color: #F1F1F1;
+			}
+			
+			#logs > div {
+				display: flex;
+			}
+			
+			#logs > div > article:first-child {
+				padding-right: 70px;
+			}
 		</style>
 		<script>
 			class Searcher {
@@ -110,8 +233,24 @@
 					return fetch('logout.sh');
 				}
 				
+				getProcesses() {
+					return fetch('processes.sh').then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
 				getLogs() {
 					return fetch('logs.sh').then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				killProcess(pid) {
+					return fetch(`kill.sh?pid=${pid}`).then(response => {
 								return response.json().then(e => {
 									return {...e, status: response.status}
 								});
@@ -126,20 +265,13 @@
 					window.location = '/'; // ja s'ha fet logout, torna a la pàgina principal
 				});
 			}
-			
-			function show(el) {
-				processes_app.setActive(false);
-				logs_app.setActive(false);
-				
-				eval(`${el}_app`).setActive(true);
-			}
 		</script>
 	</head>
 	<body>
 		<header>
 			<nav>
-				<a href="#" onclick="show('processes')">Gestió de procéssos</a>
-				<a href="#" onclick="show('logs')">Gestió de logs</a>
+				<a href="#" id="processes_a" onmouseover="show('processes')">Gestió de procéssos</a>
+				<a href="#" id="logs_a" onmouseover="show('logs')">Gestió de logs</a>
 				<a href="#" onclick="">Gestió de logs</a>
 				<a href="#" onclick="">Gestió d'usuaris</a>
 				<a href="#" onclick="">Filtrat de paquets</a>
@@ -159,42 +291,167 @@
 		<main>
 			<section id="processes" v-if="active">
 				<h1>Gestió de processos</h1>
+				<div id="statsHead" class="horizontal">
+					<div>Temps encès: <span>{{uptime}}</span></div>
+					<div>
+						<div>CPU: <span>{{cpu_usage()}}</span></div>
+						<div>RAM: <span>{{ram_usage}}</span></div>
+						<div>Disc: <span>{{disc_usage}}</span></div>
+						<div>Auto-reload <input type="checkbox" v-model="reload" @change="reloadChanged()" /></div>
+					</div>
+				</div>
+				
+				<table id="tableProcess">
+				  <tr>
+					<th v-bind:class="{ 'sorting-asc': sort_by === 'command' && !desc, 'sorting-desc': sort_by === 'command' && desc }" @click="setSort('command')">Nom</th>
+					<th v-bind:class="{ 'sorting-asc': sort_by === 'user' && !desc, 'sorting-desc': sort_by === 'user' && desc }" @click="setSort('user')">Usuari</th>
+					<th v-bind:class="{ 'sorting-asc': sort_by === 'pid' && !desc, 'sorting-desc': sort_by === 'pid' && desc }" @click="setSort('pid')">PID</th>
+					<th v-bind:class="{ 'sorting-asc': sort_by === 'cpu' && !desc, 'sorting-desc': sort_by === 'cpu' && desc }" @click="setSort('cpu')">CPU</th>
+					<th v-bind:class="{ 'sorting-asc': sort_by === 'mem' && !desc, 'sorting-desc': sort_by === 'mem' && desc }" @click="setSort('mem')">RAM</th>
+					<th></th>
+				  </tr>
+				  <tr v-for="p in sortedProcesses">
+					<td>{{p.command}}</td>
+					<td>{{p.user}}</td>
+					<td>{{p.pid}}</td>
+					<td>{{Math.trunc(p.cpu*100)}}%</td>
+					<td>{{Math.trunc(p.mem*100)}}%</td>
+					<td><button @click="kill(p.pid)">x</button></td>
+				  </tr>
+				</table>
+				
+				<div v-bind:class="i.style" v-for="i in info">
+					{{i.msg}}
+					<button @click="discardVar(i.id)">x</button>
+				</div>
 			</section>
 			
 			<section id="logs" v-if="active">
 				<h1>Gestió de logs</h1>
 				
-				<article>
-					<h3>Últims accessos</h3>
-					<table>
-					  <tr>
-						<th>Usuari</th>
-						<th>Data</th>
-					  </tr>
-					  <tr v-for="l in last">
-						<td>{{l.user}}</td>
-						<td>{{l.date}}</td>
-					  </tr>
-					</table>
-				</article>
-				
-				<article>
-					<h3>Logs</h3>
-					<textarea readonly ref="logs_text">{{logs}}</textarea>
-				</article>
+				<div>
+					<article>
+						<h3>Últims accessos</h3>
+						<table>
+						  <tr>
+							<th>Usuari</th>
+							<th>Data</th>
+						  </tr>
+						  <tr v-for="l in last">
+							<td>{{l.user}}</td>
+							<td>{{l.date}}</td>
+						  </tr>
+						</table>
+					</article>
+					
+					<article>
+						<h3>Logs</h3>
+						<textarea readonly ref="logs_text">{{logs}}</textarea>
+					</article>
+				</div>
 			</section>
 		</main>
 		
 		<script>
+			let processes_a = document.getElementById('processes_a'),
+				logs_a = document.getElementById('logs_a');
+			function show(el) {
+				processes_app.setActive(false);
+				logs_app.setActive(false);
+				processes_a.className = '';
+				logs_a.className = '';
+				
+				eval(`${el}_app`).setActive(true);
+				eval(`${el}_a`).className = 'selected';
+			}
+			
 			var processes_app = new Vue({
 				el: '#processes',
 				data: {
-					active: true
+					active: true,
+					reload: true,
+					
+					uptime: '',
+					ram_usage: '',
+					disc_usage: '',
+					processes: [],
+					sortedProcesses: [],
+					
+					info: [],
+					
+					/* sort variables */
+					sort_by: 'user',
+					desc: false
 				},
 				methods: {
 					setActive: function(bool) {
 						this.active = bool;
+					},
+					cpu_usage: function() {
+						return `${Math.trunc(this.processes.reduce((acum,curr)=>acum+curr.cpu, 0)*100)}%`;
+					},
+					kill: function(pid) {
+						searcher.killProcess(pid).then((e)=>{
+							if (e.status === 200) this.appendInfo(e.result);
+							else this.appendError(e.err);
+						});
+					},
+					load: function() {
+						searcher.getProcesses().then((r)=>{
+							if (r.status === 200) {
+								this.uptime = r.uptime;
+								this.ram_usage = `${Math.trunc(r.ram_usage*100)}%`
+								this.disc_usage = `${Math.trunc(r.disc_usage*100)}%`;
+								this.processes = r.processes;
+								this.reloadSortedProcesses();
+								
+								if (this.reload) setTimeout(this.load, 1500); // torna a cridar en 2s
+							}
+						});
+					},
+					reloadChanged: function() {
+						if (this.reload) this.load();
+					},
+					reloadSortedProcesses: function() {
+						this.sortedProcesses =
+							this.processes.sort((a,b)=>{
+								if (this.desc) {
+									if (a[this.sort_by] > b[this.sort_by]) return -1;
+									return a[this.sort_by] < b[this.sort_by];
+								}
+								else {
+									if (a[this.sort_by] < b[this.sort_by]) return -1;
+									return a[this.sort_by] > b[this.sort_by];
+								}
+							});
+					},
+					setSort: function(criteria) {
+						if (this.sort_by == criteria) this.desc = !this.desc; // s'ha clickat el mateix, fer el toggle
+						else this.sort_by = criteria;
+						this.reloadSortedProcesses();
+					},
+					
+					/* popup functions */
+					appendVar(_msg, _style) {
+						let id = 0;
+						if (this.info.length > 0) id = this.info[this.info.length - 1].id + 1;
+						
+						this.info.push({id:id, msg:_msg, style:_style});
+						
+						setTimeout(()=>this.discardVar(id), 8000);
+					},
+					appendError: function(err) {
+						this.appendVar(err, 'error');
+					},
+					appendInfo: function(msg) {
+						this.appendVar(msg, 'info');
+					},
+					discardVar: function(id) {
+						this.info = this.info.filter(e => e.id !== id);
 					}
+				},
+				beforeMount() {
+					this.load();
 				}
 			});
 			
@@ -208,19 +465,23 @@
 				methods: {
 					setActive: function(bool) {
 						this.active = bool;
+						if (bool) this.load();
 					},
 					setLogs: function(txt) {
 						this.logs = txt;
 						if (this.$refs.logs_text !== undefined) this.$refs.logs_text.scrollTop = this.$refs.logs_text.scrollHeight;
+					},
+					load: function() {
+						searcher.getLogs().then((r)=>{
+							if (r.status === 200) {
+								this.last = r.last;
+								this.setLogs(r.logs);
+							}
+						});
 					}
 				},
 				beforeMount() {
-					searcher.getLogs().then((r)=>{
-						if (r.status === 200) {
-							this.last = r.last;
-							this.setLogs(r.logs);
-						}
-					});
+					this.load();
 				}
 			});
 		</script>
