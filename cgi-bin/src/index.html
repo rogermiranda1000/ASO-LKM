@@ -42,6 +42,14 @@
 				killProcess(pid) {
 					return fetch(`kill.sh?pid=${pid}`);
 				}
+				
+				getHints(path) {
+					return fetch(`search.sh?path=${path}`).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
 			};
 			
 			const searcher = new Searcher();
@@ -55,6 +63,7 @@
 			function show(el) {
 				processes_app.setActive(false);
 				logs_app.setActive(false);
+				tasks_app.setActive(false);
 				
 				eval(`${el}_app`).setActive(true);
 			}
@@ -68,6 +77,7 @@
 				<a href="#" onclick="">Gestió de logs</a>
 				<a href="#" onclick="">Gestió d'usuaris</a>
 				<a href="#" onclick="">Filtrat de paquets</a>
+				<a href="#" onclick="show('tasks')">Programació de tasques</a>
 			</nav>
 			<a href="#" onclick="logout()">Logout</a>
 		</header>
@@ -123,6 +133,29 @@
 					<textarea readonly>{{logs}}</textarea>
 				</article>
 			</section>
+			
+			<section id="tasks" v-if="active">
+				<h1>Programació de tasques</h1>
+				
+				<article>
+					<h3>Crear</h3>
+					<form class="shadow" action="cron_post.sh" onsubmit="return false;"> <!-- method="post" enctype="application/x-www-form-urlencoded" -->
+						<label for="name">Nom</label>
+						<input type="text" id="name" v-model="script_name" />
+						
+						<label for="script">Script</label>
+						<input type="text" ref="script" id="script" v-model="script_path" @keypress="pathChanging()" list="files" />
+						<datalist id="files">
+							<option v-for="f in paths" v-bind:value="f.path" />
+						</datalist>
+						
+						<label for="time">Quan</label>
+						<input type="text" id="time" v-model="script_time" />
+						
+						<button @click="add()">+</button>
+					</form>
+				</article>
+			</section>
 		</main>
 		
 		<script>
@@ -145,6 +178,7 @@
 				methods: {
 					setActive: function(bool) {
 						this.active = bool;
+						if (bool) this.load();
 					},
 					cpu_usage: function() {
 						return `${Math.trunc(this.processes.reduce((acum,curr)=>acum+curr.cpu, 0)*100)}%`;
@@ -161,7 +195,7 @@
 								this.processes = r.processes;
 								this.reloadSortedProcesses();
 								
-								if (this.reload) setTimeout(this.load, 1500); // torna a cridar en 2s
+								if (this.reload && this.active) setTimeout(this.load, 1500); // torna a cridar en 2s
 							}
 						});
 					},
@@ -215,6 +249,39 @@
 				},
 				beforeMount() {
 					this.load();
+				}
+			});
+			
+			var tasks_app = new Vue({
+				el: '#tasks',
+				data: {
+					active: false,
+					
+					script_name: '',
+					script_path: '',
+					script_time: '',
+					
+					paths: []
+				},
+				methods: {
+					setActive: function(bool) {
+						this.active = bool;
+					},
+					add: function() {
+						
+					},
+					pathChanging: function() {
+						setTimeout(this.pathChanged, 1); // keypress encara no ha afegit la tecla a la variable
+					},
+					pathChanged: function() {
+						searcher.getHints(this.script_path).then((e)=>{
+							this.paths = e.results;
+							if (this.$refs.script !== undefined) this.$refs.script.focus(); // si no datalist no es recarga
+						});
+					}
+				},
+				beforeMount() {
+					this.pathChanged();
 				}
 			});
 		</script>
