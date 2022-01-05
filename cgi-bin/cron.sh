@@ -45,7 +45,6 @@ function getUserCron() {
 function addCronData() {
 	user="$1"
 	shift
-	(sudo crontab -u "$user" -l 2>/dev/null; echo "$*")
 	(sudo crontab -u "$user" -l 2>/dev/null; echo "$*") | sudo crontab -u "$user" -
 }
 

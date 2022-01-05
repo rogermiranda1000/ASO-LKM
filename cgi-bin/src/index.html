@@ -58,6 +58,14 @@
 								});
 							});
 				}
+				
+				addTask(minute, hour, m_day, month, w_day, script) {
+					return fetch(`cron.sh?action=add&minute=${minute}&hour=${hour}&m_day=${m_day}&month=${month}&w_day=${w_day}&script=${script.replaceAll('&', encodeURIComponent('&'))}`).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
 			};
 			
 			const searcher = new Searcher();
@@ -171,17 +179,22 @@
 				<article>
 					<h3>Crear</h3>
 					<form class="shadow" action="cron_post.sh" onsubmit="return false;"> <!-- method="post" enctype="application/x-www-form-urlencoded" -->
-						<label for="name">Nom</label>
-						<input type="text" id="name" v-model="script_name" />
-						
 						<label for="script">Script</label>
-						<input type="text" ref="script" id="script" v-model="script_path" @keypress="pathChanging()" list="files" />
+						<input type="text" ref="script" id="script" v-model="script_path" @keypress="pathChanging()" list="files" required />
 						<datalist id="files">
 							<option v-for="f in paths" v-bind:value="f.path" />
 						</datalist>
 						
-						<label for="time">Quan</label>
-						<input type="text" id="time" v-model="script_time" />
+						<label for="minute">Minut</label>
+						<input type="text" id="minute" v-model="script_minute" required />
+						<label for="hour">Hora</label>
+						<input type="text" id="hour" v-model="script_hour" required />
+						<label for="m_day">Dia del mes</label>
+						<input type="text" id="m_day" v-model="script_m_day" required />
+						<label for="month">Mes</label>
+						<input type="text" id="month" v-model="script_month" required />
+						<label for="w_day">Dia de la setmana</label>
+						<input type="text" id="w_day" v-model="script_w_day" required />
 						
 						<button @click="add()">+</button>
 					</form>
@@ -288,9 +301,12 @@
 				data: {
 					active: false,
 					
-					script_name: '',
 					script_path: '',
-					script_time: '',
+					script_minute: '',
+					script_hour: '',
+					script_m_day: '',
+					script_month: '',
+					script_w_day: '',
 					
 					paths: [],
 					tasks: []
@@ -300,7 +316,9 @@
 						this.active = bool;
 					},
 					add: function() {
-						
+						searcher.addTask(this.script_minute, this.script_hour, this.script_m_day, this.script_month, this.script_w_day, this.script_path).then((r)=>{
+								if (r.status === 200) this.load();
+							});
 					},
 					pathChanging: function() {
 						setTimeout(this.pathChanged, 1); // keypress encara no ha afegit la tecla a la variable
@@ -313,11 +331,14 @@
 					},
 					remove: function(task) {
 					
+					},
+					load: function() {
+						searcher.getTasks().then((e)=>this.tasks = e.tasks);
 					}
 				},
 				beforeMount() {
 					this.pathChanged();
-					searcher.getTasks().then((e)=>this.tasks = e.tasks);
+					this.load();
 				}
 			});
 		</script>
