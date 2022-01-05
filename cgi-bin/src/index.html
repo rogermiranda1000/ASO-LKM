@@ -7,6 +7,99 @@
 		<title>Linux manager</title>
 		<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
 		<style>
+			.shadow {
+				box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
+			}
+			* {
+				font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+			}
+			body {
+				margin: 0px;
+			}
+			header {
+				display: flex;
+				flex-direction: column;
+				justify-content: space-between;
+
+				background-color: #B8E1FF;
+				position: absolute;
+				top: 0px;
+				left: 0px;
+				height: calc(100% - 50px);
+				width: 250px;
+				padding: 25px;
+			}
+			main {
+				position: absolute;
+				top: 0px;
+				left: 300px;
+				padding: 40px 70px 70px 70px;
+				width: calc(100% - 440px);
+				height: calc(100% - 110px);
+
+				display: flex;
+				flex-direction: row;
+			}
+			header > nav {
+				display: flex;
+				flex-direction: column;
+				align-items: flex-start;
+				justify-content: flex-start;
+			}
+			a {
+				text-decoration: none;
+				color: black;
+				text-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
+				font-size: large;
+				margin: 30px 20px 30px 5px;
+				font-weight: 600;
+			}
+
+			h1 {
+				margin-bottom: 35px;
+				font-size: xx-large;
+			}
+			h3 {
+				margin-top: 35px;
+				font-size: large;
+			}
+			table {
+				border-spacing: 0px 0px;
+			}
+			textarea {
+				width: 800px;
+				height: 320px;
+				font-size: medium;
+				padding: 10px;
+				border: none;
+				background-color: #F1F1F1;
+			}
+			td , th {
+				padding: 6px 30px 6px 30px;
+			}
+			tr:nth-child(2n) {
+				background: #F8F8F8;
+			}
+			tr:nth-child(2n - 1) {
+				background: #F1F1F1;
+			}
+			#start {
+				width: 40px;
+				height: 40px;
+				margin-left: 25px;
+			}
+			#restart {
+				width: 48px;
+				height: 48px;
+				margin-left: 25px;
+			}
+			header > div {
+				display: flex;
+				align-items: center;
+			}
+			.pointer:hover {
+				cursor: pointer;
+			}
 			
 		</style>
 		<script>
@@ -51,7 +144,17 @@
 				<a href="#" onclick="">Gestió d'usuaris</a>
 				<a href="#" onclick="">Filtrat de paquets</a>
 			</nav>
-			<a href="#" onclick="logout()">Logout</a>
+			
+			<div>
+				<a id="logout" href="#" onclick="logout()">Logout</a>
+				<svg id="start" class="pointer" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 30.143 30.143" style="enable-background:new 0 0 30.143 30.143;" xml:space="preserve">
+					<g>
+						<path style="fill:#030104;" d="M20.034,2.357v3.824c3.482,1.798,5.869,5.427,5.869,9.619c0,5.98-4.848,10.83-10.828,10.83   c-5.982,0-10.832-4.85-10.832-10.83c0-3.844,2.012-7.215,5.029-9.136V2.689C4.245,4.918,0.731,9.945,0.731,15.801   c0,7.921,6.42,14.342,14.34,14.342c7.924,0,14.342-6.421,14.342-14.342C29.412,9.624,25.501,4.379,20.034,2.357z"/>
+						<path style="fill:#030104;" d="M14.795,17.652c1.576,0,1.736-0.931,1.736-2.076V2.08c0-1.148-0.16-2.08-1.736-2.08   c-1.57,0-1.732,0.932-1.732,2.08v13.496C13.062,16.722,13.225,17.652,14.795,17.652z"/>
+					</g>
+				</svg>
+				<svg id="restart" class="pointer" xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.75 8a4.5 4.5 0 0 1-8.61 1.834l-1.391.565A6.001 6.001 0 0 0 14.25 8 6 6 0 0 0 3.5 4.334V2.5H2v4l.75.75h3.5v-1.5H4.352A4.5 4.5 0 0 1 12.75 8z"/></svg>
+			</div>
 		</header>
 		<main>
 			<section id="processes" v-if="active">
@@ -77,7 +180,7 @@
 				
 				<article>
 					<h3>Logs</h3>
-					<textarea readonly>{{logs}}</textarea>
+					<textarea readonly ref="logs_text">{{logs}}</textarea>
 				</article>
 			</section>
 		</main>
@@ -105,13 +208,17 @@
 				methods: {
 					setActive: function(bool) {
 						this.active = bool;
+					},
+					setLogs: function(txt) {
+						this.logs = txt;
+						if (this.$refs.logs_text !== undefined) this.$refs.logs_text.scrollTop = this.$refs.logs_text.scrollHeight;
 					}
 				},
 				beforeMount() {
 					searcher.getLogs().then((r)=>{
 						if (r.status === 200) {
 							this.last = r.last;
-							this.logs = r.logs;
+							this.setLogs(r.logs);
 						}
 					});
 				}
