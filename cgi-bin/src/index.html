@@ -150,15 +150,19 @@
 				margin-bottom: 20px;
 				width: 100%;
 			}
-			#statsHead > div {
-				background-color: #84D3FF;
-				padding: 10px;
-			}
 			#statsHead > div:first-child {
 				background-color: #C5EAFF;
-				margin-right: 200px;
+				padding: 10px;
 			}
-			#statsHead > div > span{
+			#statsHead > div:nth-child(2) {
+				display: flex;
+			}
+			#statsHead > div > div {
+				background-color: #84D3FF;
+				padding: 10px;
+				margin-left: 15px;
+			}
+			#statsHead div > span {
 				font-weight: 1000;
 			}
 			#tableProcess {
@@ -172,10 +176,10 @@
 				top: 0;
 				background-color: #84D3FF;
 			}
-			#tableProcess tr:first-child > th {
+			/*#tableProcess tr:first-child > th {
 				width: calc(70vh / 6);
-			}
-			#processes, #tableProcess {
+			}*/
+			#processes, #tableProcess, #tableProcess tr:first-child > th {
 				width: 100%;
 			}
 			#tableProcess tr > td {
@@ -283,10 +287,12 @@
 				<h1>Gestió de processos</h1>
 				<div id="statsHead" class="horizontal">
 					<div>Temps encès: <span>{{uptime}}</span></div>
-					<div>CPU: <span>{{cpu_usage()}}</span></div>
-					<div>RAM: <span>{{ram_usage}}</span></div>
-					<div>Disc: <span>{{disc_usage}}</span></div>
-					<div>Auto-reload <input type="checkbox" v-model="reload" @change="reloadChanged()" /></div>
+					<div>
+						<div>CPU: <span>{{cpu_usage()}}</span></div>
+						<div>RAM: <span>{{ram_usage}}</span></div>
+						<div>Disc: <span>{{disc_usage}}</span></div>
+						<div>Auto-reload <input type="checkbox" v-model="reload" @change="reloadChanged()" /></div>
+					</div>
 				</div>
 				
 				<table id="tableProcess">
