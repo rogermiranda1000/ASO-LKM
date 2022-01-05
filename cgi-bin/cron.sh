@@ -46,6 +46,24 @@ function addCronData() {
 	user="$1"
 	shift
 	(sudo crontab -u "$user" -l 2>/dev/null; echo "$*") | sudo crontab -u "$user" -
+	logger -p local7.info "User $user adding cron task..."
+}
+
+# @param launch_user
+# @param target_user
+# @param line
+function removeCronData() {
+	launch_user="$1"
+	shift
+	target_user="$1"
+	shift
+	
+	if [ "$launch_user" = "$target_user" ] || [ `isSudoer "$launch_user"` = "1" ]; then
+		sudo crontab -u "$target_user" -l 2>/dev/null | grep -v "^$*\$" | sudo crontab -u "$target_user" -
+		logger -p local7.info "User $user removing cron task..."
+	else
+		return 1
+	fi
 }
 
 # @author https://stackoverflow.com/a/6265305/9178470
@@ -53,7 +71,7 @@ urldecode(){
 	echo -e "$(sed 's/+/ /g;s/%\(..\)/\\x\1/g;')"
 }
 
-# action, minute, hour, m_day, month, w_day, script
+# action, minute, hour, m_day, month, w_day, script, [user]
 declare -A get_info
 read tmp1 tmp2 <<< `echo "$QUERY_STRING" | cut -d "&" -f 1 | awk -F= '{ print $1 " " $2 }'`
 get_info["$tmp1"]="$tmp2"
@@ -68,6 +86,8 @@ get_info["$tmp1"]="$tmp2"
 read tmp1 tmp2 <<< `echo "$QUERY_STRING" | cut -d "&" -f 6 | awk -F= '{ print $1 " " $2 }'`
 get_info["$tmp1"]="$tmp2"
 read tmp1 tmp2 <<< `echo "$QUERY_STRING" | cut -d "&" -f 7 | awk -F= '{ print $1 " " $2 }'`
+get_info["$tmp1"]="$tmp2"
+read tmp1 tmp2 <<< `echo "$QUERY_STRING" | cut -d "&" -f 8 | awk -F= '{ print $1 " " $2 }'`
 get_info["$tmp1"]="$tmp2"
 
 if [ "$REQUEST_METHOD" != "GET" ] || [ -z "${get_info[script]}"]; then
@@ -93,17 +113,28 @@ else
 		exit 1
 	fi
 	
-	get_info['script']=`echo "${get_info[script]}" | urldecode`
+	get_info['script']=`echo "${get_info[script]}" | urldecode | xargs` # decode special characters & trim
 	
-	echo "content-type: text/plain"
-	echo
 	if [ "${get_info[action]}" = 'add' ]; then
 		# add a task
 		addCronData "$user" "${get_info[minute]} ${get_info[hour]} ${get_info[m_day]} ${get_info[month]} ${get_info[w_day]} ${get_info[script]}"
+		echo "content-type: text/plain"
+		echo
 		echo "{\"msg\": \"added\"}"
 	else
 		# remove a task
-		echo "{\"msg\": \"deleted\"}"
+		removeCronData "$user" "${get_info[user]}" "${get_info[minute]} ${get_info[hour]} ${get_info[m_day]} ${get_info[month]} ${get_info[w_day]} ${get_info[script]}"
+		ret=$?
+		if [ $ret -eq 0 ]; then
+			echo "content-type: text/plain"
+			echo
+			echo "{\"msg\": \"deleted\"}"
+		else
+			echo "Status: 401"
+			echo "content-type: text/plain"
+			echo
+			echo "{\"err\": \"You are not sudo. You can't remove other users tasks\"}"
+		fi
 	fi
 fi
 

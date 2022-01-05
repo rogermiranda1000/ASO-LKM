@@ -67,8 +67,8 @@
 							});
 				}
 				
-				removeTask(minute, hour, m_day, month, w_day, script) {
-					return fetch(`cron.sh?action=remove&minute=${minute}&hour=${hour}&m_day=${m_day}&month=${month}&w_day=${w_day}&script=${encodeURIComponent(script)}`).then(response => {
+				removeTask(minute, hour, m_day, month, w_day, script, user) {
+					return fetch(`cron.sh?action=remove&minute=${minute}&hour=${hour}&m_day=${m_day}&month=${month}&w_day=${w_day}&script=${encodeURIComponent(script)}&user=${user}`).then(response => {
 								return response.json().then(e => {
 									return {...e, status: response.status}
 								});
@@ -328,6 +328,11 @@
 								if (r.status === 200) this.load();
 							});
 					},
+					remove: function(task) {
+						searcher.removeTask(task.minute, task.hour, task.m_day, task.month, task.w_day, task.script, task.user).then((r)=>{
+								if (r.status === 200) this.load();
+							});
+					},
 					pathChanging: function() {
 						setTimeout(this.pathChanged, 1); // keypress encara no ha afegit la tecla a la variable
 					},
@@ -336,11 +341,6 @@
 							this.paths = e.results;
 							if (this.$refs.script !== undefined) this.$refs.script.focus(); // si no datalist no es recarga
 						});
-					},
-					remove: function(task) {
-						searcher.removeTask(task.minute, task.hour, task.m_day, task.month, task.w_day, task.path).then((r)=>{
-								if (r.status === 200) this.load();
-							});
 					},
 					load: function() {
 						searcher.getTasks().then((e)=>this.tasks = e.tasks);
