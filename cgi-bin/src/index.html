@@ -11,7 +11,7 @@
 			* {
 				font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 			}
-			.shadow {
+			.shadow , .error , .info {
 				box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
 			}
 			body {
@@ -41,6 +41,39 @@
 				display: flex;
 				flex-direction: row;
 			}
+
+			.error , .info {
+				position: relative;
+   				width: 65%;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				padding: 25px;
+				font-weight: 500;
+				margin: 8px;
+				z-index: 10;
+				opacity: 0.8;
+				transition: opacity 0.2s;
+			}
+			.error:hover , .info:hover {
+				opacity: 1;
+			}
+			.error > button , .info > button {
+				position: absolute;
+   				top: 2px;
+   				right: 2px;
+				background-color: transparent;
+				border: none;
+				z-index: 100;
+			}
+			.error {
+				background-color: rgb(230, 89, 89);
+			}
+			
+			.info {
+				background-color: rgb(95, 175, 95);
+			}
+
 			header > nav {
 				display: flex;
 				flex-direction: column;
@@ -52,8 +85,14 @@
 				color: black;
 				text-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
 				font-size: large;
-				margin: 30px 20px 30px 5px;
+				padding: 10% 12% 10% 12%;
 				font-weight: 600;
+				width: 76%;
+			}
+			.selected {
+				background-color: #20567c;
+				color: white;
+				box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.705);
 			}
 	
 			h1 {
@@ -125,8 +164,12 @@
 			}
 			#tableProcess {
 				overflow-y: scroll;
+<<<<<<< HEAD
 				table-layout: fixed;
 				height: 70vh;
+=======
+				height: 75vh;
+>>>>>>> c316dffda3b7e386eac763b08754f5580fee6f61
 				display: block;
 			}
 			#tableProcess tr:first-child{
@@ -161,8 +204,8 @@
 	
 			/* logs CSS */
 			textarea {
-				width: 800px;
-				height: 320px;
+				width: 50vw;
+				height: 33vh;
 				font-size: medium;
 				padding: 10px;
 				border: none;
