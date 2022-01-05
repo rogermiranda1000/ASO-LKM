@@ -307,6 +307,30 @@
 								});
 							});
 				}
+				
+				getFilters() {
+					return fetch('packets.sh').then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				addFilter(clase, ip_src, ip_dst, port_src, port_dst, protocol, action) {
+					return fetch(`packets.sh?do=A&class=${clase}&action=${action}&ip_src=${ip_src}&ip_dst=${ip_dst}&port_src=${port_src}&port_dst=${port_dst}&protocol=${protocol}`).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				removeFilter(clase, ip_src, ip_dst, port_src, port_dst, protocol, action) {
+					return fetch(`packets.sh?do=D&class=${clase}&action=${action}&ip_src=${ip_src}&ip_dst=${ip_dst}&port_src=${port_src}&port_dst=${port_dst}&protocol=${protocol}`).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
 			};
 			
 			const searcher = new Searcher();
@@ -323,10 +347,10 @@
 			<nav>
 				<a href="#" class="selected" id="processes_a" onmouseover="show('processes')">Gestió de procéssos</a>
 				<a href="#" id="logs_a" onmouseover="show('logs')">Gestió de logs</a>
-				<a href="#" onclick="">Gestió de logs</a>
 				<a href="#" onclick="">Gestió d'usuaris</a>
-				<a href="#" onclick="">Filtrat de paquets</a>
+				<a href="#" id="paquets_a" onmouseover="show('paquets')">Filtrat de paquets</a>
 				<a href="#" id="tasks_a" onmouseover="show('tasks')">Programació de tasques</a>
+				<a href="#" id="music_a" onmouseover="show('music')">Music</a>
 			</nav>
 			
 			<div>
@@ -444,19 +468,86 @@
 				  </tr>
 				</table>
 			</section>
+			
+			<section id="paquets" v-if="active">
+				<h1>Filtrat de paquets</h1>
+				
+				<table>
+				  <tr>
+					<th>Class</th>
+					<th>IP origen</th>
+					<th>IP destí</th>
+					<th>Port origen</th>
+					<th>Port destí</th>
+					<th>Protocol</th>
+					<th>Action</th>
+					<th></th>
+				  </tr>
+				  <template v-for="paquetss in paquets">
+					  <tr v-for="packet in paquetss.filters">
+						<td>{{paquetss.class}}</td>
+						<td>{{packet.ip_src}}</td>
+						<td>{{packet.ip_dst}}</td>
+						<td>{{packet.spt}}</td>
+						<td>{{packet.dpt}}</td>
+						<td>{{packet.protocol}}</td>
+						<td v-bind:class="{ accept: packet.action === 'ACCEPT', drop: packet.action === 'DROP' }">{{packet.action}}</td>
+						<td><button @click="remove(paquetss.class, packet)">x</button></td>
+					  </tr>
+				  </template>
+				  <tr>
+					<td>
+						<select v-model="filter_class">
+							<option value="INPUT">INPUT</option>
+							<option value="FORWARD">FORWARD</option>
+							<option value="OUTPUT">OUTPUT</option>
+						</select>
+					</td>
+					<td><input type="text" v-model="filter_ip_src" /></td>
+					<td><input type="text" v-model="filter_ip_dst" /></td>
+					<td><input type="text" v-if="filter_protocol === 'tcp' || filter_protocol === 'udp'" v-model="filter_port_src" /></td>
+					<td><input type="text" v-if="filter_protocol === 'tcp' || filter_protocol === 'udp'" v-model="filter_port_dst" /></td>
+					<td>
+						<select v-model="filter_protocol">
+							<option value="tcp">tcp</option>
+							<option value="udp">udp</option>
+							<option value="icmp">icmp</option>
+							<option value="all">all</option>
+						</select>
+					</td>
+					<td>
+						<select v-model="filter_action">
+							<option value="ACCEPT">ACCEPT</option>
+							<option value="DROP">DROP</option>
+						</select>
+					</td>
+					<td><button @click="add()">+</button></td>
+				  </tr>
+				</table>
+			</section>
+			
+			<section id="music" v-if="active">
+				<h1>Música</h1>
+			</section>
 		</main>
 		
 		<script>
 			let processes_a = document.getElementById('processes_a'),
 				tasks_a = document.getElementById('tasks_a');
-				logs_a = document.getElementById('logs_a');
+				logs_a = document.getElementById('logs_a'),
+				paquets_a = document.getElementById('paquets_a'),
+				music_a = document.getElementById('music_a');
 			function show(el) {
 				processes_app.setActive(false);
 				tasks_app.setActive(false);
 				logs_app.setActive(false);
+				paquets_app.setActive(false);
+				music_app.setActive(false);
 				processes_a.className = '';
 				tasks_a.className = '';
 				logs_a.className = '';
+				paquets_a.className = '';
+				music_a.className = '';
 				
 				eval(`${el}_app`).setActive(true);
 				eval(`${el}_a`).className = 'selected';
@@ -627,6 +718,54 @@
 				},
 				beforeMount() {
 					this.pathChanged();
+					this.load();
+				}
+			});
+			
+			var music_app = new Vue({
+				el: '#music',
+				data: {
+					active: false
+				},
+				methods: {
+					setActive: function(bool) {
+						this.active = bool;
+					}
+				},
+				beforeMount() {
+					
+				}
+			});
+			
+			var paquets_app = new Vue({
+				el: '#paquets',
+				data: {
+					active: false,
+					paquets: [],
+					
+					filter_class: 'INPUT',
+					filter_ip_src: '',
+					filter_ip_dst: '',
+					filter_port_src: '',
+					filter_port_dst: '',
+					filter_protocol: 'tcp',
+					filter_action: 'ACCEPT'
+				},
+				methods: {
+					setActive: function(bool) {
+						this.active = bool;
+					},
+					add: function() {
+						searcher.addFilter(this.filter_class, this.filter_ip_src, this.filter_ip_dst, this.filter_port_src, this.filter_port_dst, this.filter_protocol, this.filter_action).then((e)=>this.load());
+					},
+					remove: function(clase, packet) {
+						searcher.removeFilter(clase, packet.ip_src, packet.ip_dst, packet.spt === undefined ? '' : packet.spt, packet.dpt === undefined ? '' : packet.dpt, packet.protocol, packet.action).then((e)=>this.load());
+					},
+					load: function() {
+						searcher.getFilters().then((r)=>this.paquets = r.filters);
+					}
+				},
+				beforeMount() {
 					this.load();
 				}
 			});
