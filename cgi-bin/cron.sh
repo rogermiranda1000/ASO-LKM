@@ -59,7 +59,8 @@ function removeCronData() {
 	shift
 	
 	if [ "$launch_user" = "$target_user" ] || [ `isSudoer "$launch_user"` = "1" ]; then
-		sudo crontab -u "$target_user" -l 2>/dev/null | grep -v "^$*\$" | sudo crontab -u "$target_user" -
+		search=`echo "$*" | sed 's/\\-/\\\\-/g' | sed 's/\\*/\\\\*/g' | sed 's,\\/,\\\\/,g'`
+		sudo crontab -u "$target_user" -l 2>/dev/null | grep -v "^$search\$" | sudo crontab -u "$target_user" -
 		logger -p local7.info "User $user removing cron task..."
 	else
 		return 1
