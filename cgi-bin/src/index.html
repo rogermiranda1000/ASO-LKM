@@ -50,6 +50,14 @@
 								});
 							});
 				}
+				
+				getTasks() {
+					return fetch('cron.sh').then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
 			};
 			
 			const searcher = new Searcher();
@@ -136,6 +144,29 @@
 			
 			<section id="tasks" v-if="active">
 				<h1>Programació de tasques</h1>
+				
+				<table>
+				  <tr>
+					<th>Usuari</th>
+					<th>Minut</th>
+					<th>Hora</th>
+					<th>Dia del mes</th>
+					<th>Mes</th>
+					<th>Dia de la setmana</th>
+					<th>Script</th>
+					<th></th>
+				  </tr>
+				  <tr v-for="task in tasks">
+					<td>{{task.user}}</td>
+					<td>{{task.minute}}</td>
+					<td>{{task.hour}}</td>
+					<td>{{task.m_day}}</td>
+					<td>{{task.month}}</td>
+					<td>{{task.w_day}}</td>
+					<td>{{task.script}}</td>
+					<td><button @click="remove(task)">x</button></td>
+				  </tr>
+				</table>
 				
 				<article>
 					<h3>Crear</h3>
@@ -261,7 +292,8 @@
 					script_path: '',
 					script_time: '',
 					
-					paths: []
+					paths: [],
+					tasks: []
 				},
 				methods: {
 					setActive: function(bool) {
@@ -278,10 +310,14 @@
 							this.paths = e.results;
 							if (this.$refs.script !== undefined) this.$refs.script.focus(); // si no datalist no es recarga
 						});
+					},
+					remove: function(task) {
+					
 					}
 				},
 				beforeMount() {
 					this.pathChanged();
+					searcher.getTasks().then((e)=>this.tasks = e.tasks);
 				}
 			});
 		</script>
