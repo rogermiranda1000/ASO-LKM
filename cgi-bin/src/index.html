@@ -74,6 +74,14 @@
 								});
 							});
 				}
+				
+				getFilters() {
+					return fetch('packets.sh').then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
 			};
 			
 			const searcher = new Searcher();
@@ -213,6 +221,38 @@
 			
 			<section id="paquets" v-if="active">
 				<h1>Filtrat de paquets</h1>
+				
+				<table>
+				  <tr>
+					<th>Class</th>
+					<th>IP origen</th>
+					<th>IP destí</th>
+					<th>Port origen</th>
+					<th>Port destí</th>
+					<th>Protocol</th>
+					<th></th>
+				  </tr>
+				  <template v-for="paquetss in paquets">
+					  <tr v-for="packet in paquetss.filters">
+						<td>{{paquetss.class}}</td>
+						<td>{{packet.ip_src}}</td>
+						<td>{{packet.ip_dst}}</td>
+						<td>{{packet.spt}}</td>
+						<td>{{packet.dpt}}</td>
+						<td>{{packet.protocol}}</td>
+						<td><button @click="remove(packet)">x</button></td>
+					  </tr>
+				  </template>
+				  <tr>
+					<td><input type="text" v-model="filter_class" /></td>
+					<td><input type="text" v-model="filter_ip_src" /></td>
+					<td><input type="text" v-model="filter_ip_dst" /></td>
+					<td><input type="text" v-model="filter_port_src" /></td>
+					<td><input type="text" v-model="filter_port_dst" /></td>
+					<td><input type="text" v-model="filter_protocol" /></td>
+					<td><button @click="add()">+</button></td>
+				  </tr>
+				</table>
 			</section>
 			
 			<section id="music" v-if="active">
@@ -380,15 +420,29 @@
 			var paquets_app = new Vue({
 				el: '#paquets',
 				data: {
-					active: false
+					active: false,
+					paquets: [],
+					
+					filter_class: '',
+					filter_ip_src: '',
+					filter_ip_dst: '',
+					filter_port_src: '',
+					filter_port_dst: '',
+					filter_protocol: ''
 				},
 				methods: {
 					setActive: function(bool) {
 						this.active = bool;
+					},
+					add: function() {
+					
+					},
+					remove: function(packet) {
+						
 					}
 				},
 				beforeMount() {
-					
+					searcher.getFilters().then((r)=>this.paquets = r.filters);
 				}
 			});
 		</script>

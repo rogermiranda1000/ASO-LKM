@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function getClass() {
-	json=`sudo iptables -L "$1" | awk 'FNR > 2{ printf("{\"action\":\"%s\",\"protocol\":\"%s\",\"ip_src\":\"%s\",\"ip_dst\":\"%s\",\"extra\":\"", $1, $2, $4, $5); for(i=6; i<NF; i++) printf("%s ", $i); printf("\"},") }'`
+	json=`sudo iptables -L "$1" | awk 'FNR > 2{ printf("{\"action\":\"%s\",\"protocol\":\"%s\",\"ip_src\":\"%s\",\"ip_dst\":\"%s\"", $1, $2, $4, $5); for(i=6; i<=NF; i++) { split($i,v,":"); if (length(v[2]) > 0) printf(",\"%s\":\"%s\"", v[1], v[2]); } printf("},") }'`
 	if [ -z "$json" ]; then
 		echo -n "[]"
 	else
@@ -9,7 +9,7 @@ function getClass() {
 	fi
 }
 
-# class, action, ip_src, ip_dst, port_src, port_dst, protocol
+# do [A/D], class [INPUT/FORWARD/OUTPUT], action [DROP/ACCEPT], ip_src, ip_dst, port_src, port_dst, protocol
 declare -A get_info
 read tmp1 tmp2 <<< `echo "$QUERY_STRING" | cut -d "&" -f 1 | awk -F= '{ print $1 " " $2 }'`
 get_info["$tmp1"]="$tmp2"
@@ -38,8 +38,25 @@ if [ "$REQUEST_METHOD" != "GET" ] || [ -z "${get_info[action]}"]; then
 	getClass "OUTPUT"
 	echo "}]}"
 else
+	cmd="sudo iptables -${get_info[do]} ${get_info[class]}"
+	if [ ! -z "${get_info[ip_src]}" ]; then
+		cmd=`echo "$cmd -s ${get_info[ip_src]}"`
+	fi
+	if [ ! -z "${get_info[ip_dst]}" ]; then
+		cmd=`echo "$cmd -d ${get_info[ip_dst]}"`
+	fi
+	if [ ! -z "${get_info[protocol]}" ]; then
+		cmd=`echo "$cmd -p ${get_info[protocol]}"`
+	fi
+	if [ ! -z "${get_info[port_src]}" ]; then
+		cmd=`echo "$cmd --sport ${get_info[port_src]}"`
+	fi
+	if [ ! -z "${get_info[port_dst]}" ]; then
+		cmd=`echo "$cmd --dport ${get_info[port_dst]}"`
+	fi
+	`echo "$cmd -j ${get_info[action]}"`
 	echo "content-type: text/plain"
 	echo
-	echo "TODO"
+	echo "{\"msg\":\"done\"}"
 fi
 
