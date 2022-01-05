@@ -125,6 +125,7 @@
 			}
 			#tableProcess {
 				overflow-y: scroll;
+				table-layout: fixed;
 				height: 70vh;
 				display: block;
 			}
@@ -136,6 +137,10 @@
 			#tableProcess tr:first-child th{
 				padding-top: 16px;
 				padding-bottom: 16px;
+				width: calc(100% / 6);
+			}
+			#tableProcess > * > tr > td {
+				text-align: center;
 			}
 			#processes, #tableProcess, #tableProcess > * > * > th {
 				width: 100%;
