@@ -138,13 +138,16 @@
 			.pointer:hover , button:hover {
 				cursor: pointer;
 			}
+			button[disabled] {
+				cursor: not-allowed;
+			}
 	
 			.horizontal {
 				display: flex;
 				flex-direction: row;
 				justify-content: space-between;
 			}
-			#processes table button, #tasks table button {
+			table button {
 				background-color: red;
 				transition: background-color 0.3s;
 				color: white;
@@ -156,6 +159,9 @@
 				width: 28px;
 				height: 28px;
 			}
+			table button[disabled] {
+				background-color: gray;
+			}
 	
 			#tableProcess , #tasks table {
 				overflow-y: scroll;
@@ -163,14 +169,20 @@
 				height: 70vh;
 				display: block;
 			}
-			#processes, #tableProcess, #tableProcess tr:first-child > th , #tasks table, #tasks table tr:first-child > th{
+			#processes, #tableProcess, #tableProcess tr:first-child > th {
 				width: 100%;
 			}
 	
 			/* tasks CSS */
+			#tasks table, #tasks table tr:first-child > th {
+				width: 100%;
+			}
 			#tasks table {
 				background-color: #F8F8F8;
 				height: 80vh;
+			}
+			#tasks table tr:last-child > td:first-child {
+				font-weight: bold;
 			}
 			
 			/* processes CSS */
@@ -415,31 +427,22 @@
 					<td>{{task.script}}</td>
 					<td><button @click="remove(task)">x</button></td>
 				  </tr>
-				</table>
-				
-				<article>
-					<h3>Crear</h3>
-					<form class="shadow" action="cron_post.sh" onsubmit="return false;"> <!-- method="post" enctype="application/x-www-form-urlencoded" -->
-						<label for="script">Script</label>
-						<input type="text" ref="script" id="script" v-model="script_path" @keypress="pathChanging()" list="files" required />
+				  <tr>
+					<td>Crear</td>
+					<td><input type="text" v-model="script_minute" /></td>
+					<td><input type="text" v-model="script_hour" /></td>
+					<td><input type="text" v-model="script_m_day" /></td>
+					<td><input type="text" v-model="script_month" /></td>
+					<td><input type="text" v-model="script_w_day" /></td>
+					<td>
+						<input type="text" ref="script" v-model="script_path" @keypress="pathChanging()" list="files" />
 						<datalist id="files">
 							<option v-for="f in paths" v-bind:value="f.path" />
 						</datalist>
-						
-						<label for="minute">Minut</label>
-						<input type="text" id="minute" v-model="script_minute" required />
-						<label for="hour">Hora</label>
-						<input type="text" id="hour" v-model="script_hour" required />
-						<label for="m_day">Dia del mes</label>
-						<input type="text" id="m_day" v-model="script_m_day" required />
-						<label for="month">Mes</label>
-						<input type="text" id="month" v-model="script_month" required />
-						<label for="w_day">Dia de la setmana</label>
-						<input type="text" id="w_day" v-model="script_w_day" required />
-						
-						<button @click="add()">+</button>
-					</form>
-				</article>
+					</td>
+					<td><button @click="add()" :disabled='script_minute === "" || script_hour === "" || script_m_day === "" || script_month === "" || script_w_day === "" || script_path === ""'>+</button></td>
+				  </tr>
+				</table>
 			</section>
 		</main>
 		
