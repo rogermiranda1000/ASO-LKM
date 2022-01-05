@@ -12,7 +12,7 @@
 				font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 				--header-width: 300px;
 			}
-			.shadow , .error , .info {
+			.shadow , .error , .info , #tasks table {
 				box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
 			}
 			body {
@@ -44,7 +44,7 @@
 			
 			.error , .info {
 				position: relative;
-   				width: 65%;
+				   width: 65%;
 				display: flex;
 				justify-content: center;
 				align-items: center;
@@ -60,8 +60,8 @@
 			}
 			.error > button , .info > button {
 				position: absolute;
-   				top: 2px;
-   				right: 2px;
+				   top: 2px;
+				   right: 2px;
 				background-color: transparent;
 				border: none;
 				z-index: 100;
@@ -73,7 +73,7 @@
 			.info {
 				background-color: rgb(95, 175, 95);
 			}
-
+	
 			header > nav {
 				display: flex;
 				flex-direction: column;
@@ -138,11 +138,51 @@
 			.pointer:hover , button:hover {
 				cursor: pointer;
 			}
+			button[disabled] {
+				cursor: not-allowed;
+			}
 	
 			.horizontal {
 				display: flex;
 				flex-direction: row;
 				justify-content: space-between;
+			}
+			table button {
+				background-color: red;
+				transition: background-color 0.3s;
+				color: white;
+				font-weight: bolder;
+				font-size: large;
+				border: none;
+				border-radius: 100px;
+				box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
+				width: 28px;
+				height: 28px;
+			}
+			table button[disabled] {
+				background-color: gray;
+			}
+	
+			#tableProcess , #tasks table {
+				overflow-y: scroll;
+				table-layout: fixed;
+				height: 70vh;
+				display: block;
+			}
+			#processes, #tableProcess, #tableProcess tr:first-child > th {
+				width: 100%;
+			}
+	
+			/* tasks CSS */
+			#tasks table, #tasks table tr:first-child > th {
+				width: 100%;
+			}
+			#tasks table {
+				background-color: #F8F8F8;
+				height: 80vh;
+			}
+			#tasks table tr:last-child > td:first-child {
+				font-weight: bold;
 			}
 			
 			/* processes CSS */
@@ -171,12 +211,6 @@
 			#statsHead div > span {
 				font-weight: 1000;
 			}
-			#tableProcess {
-				overflow-y: scroll;
-				table-layout: fixed;
-				height: 70vh;
-				display: block;
-			}
 			#tableProcess tr:first-child{
 				position: sticky;
 				top: 0;
@@ -185,23 +219,8 @@
 			/*#tableProcess tr:first-child > th {
 				width: calc(70vh / 6);
 			}*/
-			#processes, #tableProcess, #tableProcess tr:first-child > th {
-				width: 100%;
-			}
 			#tableProcess tr > td {
 				text-align: center;
-			}
-			#processes table button {
-				background-color: red;
-				transition: background-color 0.3s;
-				color: white;
-				font-weight: bolder;
-				font-size: large;
-				border: none;
-				border-radius: 100px;
-				box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
-				width: 28px;
-				height: 28px;
 			}
 			#processes table button:hover {
 				background-color: rgb(150, 26, 26);
@@ -256,6 +275,38 @@
 								});
 							});
 				}
+				
+				getHints(path) {
+					return fetch(`search.sh?path=${path}`).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				getTasks() {
+					return fetch('cron.sh').then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				addTask(minute, hour, m_day, month, w_day, script) {
+					return fetch(`cron.sh?action=add&minute=${minute}&hour=${hour}&m_day=${m_day}&month=${month}&w_day=${w_day}&script=${encodeURIComponent(script)}`).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				removeTask(minute, hour, m_day, month, w_day, script, user) {
+					return fetch(`cron.sh?action=remove&minute=${minute}&hour=${hour}&m_day=${m_day}&month=${month}&w_day=${w_day}&script=${encodeURIComponent(script)}&user=${user}`).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
 			};
 			
 			const searcher = new Searcher();
@@ -270,11 +321,12 @@
 	<body>
 		<header>
 			<nav>
-				<a href="#" id="processes_a" onmouseover="show('processes')">Gestió de procéssos</a>
+				<a href="#" class="selected" id="processes_a" onmouseover="show('processes')">Gestió de procéssos</a>
 				<a href="#" id="logs_a" onmouseover="show('logs')">Gestió de logs</a>
 				<a href="#" onclick="">Gestió de logs</a>
 				<a href="#" onclick="">Gestió d'usuaris</a>
 				<a href="#" onclick="">Filtrat de paquets</a>
+				<a href="#" id="tasks_a" onmouseover="show('tasks')">Programació de tasques</a>
 			</nav>
 			
 			<div>
@@ -350,15 +402,60 @@
 					</article>
 				</div>
 			</section>
+			
+			<section id="tasks" v-if="active">
+				<h1>Programació de tasques</h1>
+				
+				<table>
+				  <tr>
+					<th>Usuari</th>
+					<th>Minut</th>
+					<th>Hora</th>
+					<th>Dia del mes</th>
+					<th>Mes</th>
+					<th>Dia de la setmana</th>
+					<th>Script</th>
+					<th></th>
+				  </tr>
+				  <tr v-for="task in tasks">
+					<td>{{task.user}}</td>
+					<td>{{task.minute}}</td>
+					<td>{{task.hour}}</td>
+					<td>{{task.m_day}}</td>
+					<td>{{task.month}}</td>
+					<td>{{task.w_day}}</td>
+					<td>{{task.script}}</td>
+					<td><button @click="remove(task)">x</button></td>
+				  </tr>
+				  <tr>
+					<td>Crear</td>
+					<td><input type="text" v-model="script_minute" /></td>
+					<td><input type="text" v-model="script_hour" /></td>
+					<td><input type="text" v-model="script_m_day" /></td>
+					<td><input type="text" v-model="script_month" /></td>
+					<td><input type="text" v-model="script_w_day" /></td>
+					<td>
+						<input type="text" ref="script" v-model="script_path" @keypress="pathChanging()" list="files" />
+						<datalist id="files">
+							<option v-for="f in paths" v-bind:value="f.path" />
+						</datalist>
+					</td>
+					<td><button @click="add()" :disabled='script_minute === "" || script_hour === "" || script_m_day === "" || script_month === "" || script_w_day === "" || script_path === ""'>+</button></td>
+				  </tr>
+				</table>
+			</section>
 		</main>
 		
 		<script>
 			let processes_a = document.getElementById('processes_a'),
+				tasks_a = document.getElementById('tasks_a');
 				logs_a = document.getElementById('logs_a');
 			function show(el) {
 				processes_app.setActive(false);
+				tasks_app.setActive(false);
 				logs_app.setActive(false);
 				processes_a.className = '';
+				tasks_a.className = '';
 				logs_a.className = '';
 				
 				eval(`${el}_app`).setActive(true);
@@ -386,6 +483,7 @@
 				methods: {
 					setActive: function(bool) {
 						this.active = bool;
+						if (bool) this.load();
 					},
 					cpu_usage: function() {
 						return `${Math.trunc(this.processes.reduce((acum,curr)=>acum+curr.cpu, 0)*100)}%`;
@@ -405,7 +503,7 @@
 								this.processes = r.processes;
 								this.reloadSortedProcesses();
 								
-								if (this.reload) setTimeout(this.load, 1500); // torna a cridar en 2s
+								if (this.reload && this.active) setTimeout(this.load, 1500); // torna a cridar en 2s
 							}
 						});
 					},
@@ -481,6 +579,54 @@
 					}
 				},
 				beforeMount() {
+					this.load();
+				}
+			});
+			
+			var tasks_app = new Vue({
+				el: '#tasks',
+				data: {
+					active: false,
+					
+					script_path: '',
+					script_minute: '',
+					script_hour: '',
+					script_m_day: '',
+					script_month: '',
+					script_w_day: '',
+					
+					paths: [],
+					tasks: []
+				},
+				methods: {
+					setActive: function(bool) {
+						this.active = bool;
+					},
+					add: function() {
+						searcher.addTask(this.script_minute, this.script_hour, this.script_m_day, this.script_month, this.script_w_day, this.script_path).then((r)=>{
+								if (r.status === 200) this.load();
+							});
+					},
+					remove: function(task) {
+						searcher.removeTask(task.minute, task.hour, task.m_day, task.month, task.w_day, task.script, task.user).then((r)=>{
+								if (r.status === 200) this.load();
+							});
+					},
+					pathChanging: function() {
+						setTimeout(this.pathChanged, 1); // keypress encara no ha afegit la tecla a la variable
+					},
+					pathChanged: function() {
+						searcher.getHints(this.script_path).then((e)=>{
+							this.paths = e.results;
+							if (this.$refs.script !== undefined) this.$refs.script.focus(); // si no datalist no es recarga
+						});
+					},
+					load: function() {
+						searcher.getTasks().then((e)=>this.tasks = e.tasks);
+					}
+				},
+				beforeMount() {
+					this.pathChanged();
 					this.load();
 				}
 			});
