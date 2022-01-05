@@ -82,6 +82,22 @@
 								});
 							});
 				}
+				
+				addFilter(clase, ip_src, ip_dst, port_src, port_dst, protocol, action) {
+					return fetch(`packets.sh?do=A&class=${clase}&action=${action}&ip_src=${ip_src}&ip_dst=${ip_dst}&port_src=${port_src}&port_dst=${port_dst}&protocol=${protocol}`).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				removeFilter(clase, ip_src, ip_dst, port_src, port_dst, protocol, action) {
+					return fetch(`packets.sh?do=D&class=${clase}&action=${action}&ip_src=${ip_src}&ip_dst=${ip_dst}&port_src=${port_src}&port_dst=${port_dst}&protocol=${protocol}`).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
 			};
 			
 			const searcher = new Searcher();
@@ -230,6 +246,7 @@
 					<th>Port origen</th>
 					<th>Port destí</th>
 					<th>Protocol</th>
+					<th>Action</th>
 					<th></th>
 				  </tr>
 				  <template v-for="paquetss in paquets">
@@ -240,16 +257,29 @@
 						<td>{{packet.spt}}</td>
 						<td>{{packet.dpt}}</td>
 						<td>{{packet.protocol}}</td>
-						<td><button @click="remove(packet)">x</button></td>
+						<td v-bind:class="{ accept: packet.action === 'ACCEPT', drop: packet.action === 'DROP' }">{{packet.action}}</td>
+						<td><button @click="remove(paquetss.class, packet)">x</button></td>
 					  </tr>
 				  </template>
 				  <tr>
-					<td><input type="text" v-model="filter_class" /></td>
+					<td>
+						<select v-model="filter_class">
+							<option value="INPUT">INPUT</option>
+							<option value="FORWARD">FORWARD</option>
+							<option value="OUTPUT">OUTPUT</option>
+						</select>
+					</td>
 					<td><input type="text" v-model="filter_ip_src" /></td>
 					<td><input type="text" v-model="filter_ip_dst" /></td>
 					<td><input type="text" v-model="filter_port_src" /></td>
 					<td><input type="text" v-model="filter_port_dst" /></td>
 					<td><input type="text" v-model="filter_protocol" /></td>
+					<td>
+						<select v-model="filter_action">
+							<option value="ACCEPT">ACCEPT</option>
+							<option value="DROP">DROP</option>
+						</select>
+					</td>
 					<td><button @click="add()">+</button></td>
 				  </tr>
 				</table>
@@ -423,26 +453,30 @@
 					active: false,
 					paquets: [],
 					
-					filter_class: '',
+					filter_class: 'INPUT',
 					filter_ip_src: '',
 					filter_ip_dst: '',
 					filter_port_src: '',
 					filter_port_dst: '',
-					filter_protocol: ''
+					filter_protocol: '',
+					filter_action: 'DROP'
 				},
 				methods: {
 					setActive: function(bool) {
 						this.active = bool;
 					},
 					add: function() {
-					
+						searcher.addFilter(this.filter_class, this.filter_ip_src, this.filter_ip_dst, this.filter_port_src, this.filter_port_dst, this.filter_protocol, this.filter_action).then((e)=>this.load());
 					},
-					remove: function(packet) {
-						
+					remove: function(clase, packet) {
+						searcher.removeFilter(clase, packet.ip_src, packet.ip_dst, packet.spt, packet.dpt, packet.protocol, packet.action).then((e)=>this.load());
+					},
+					load: function() {
+						searcher.getFilters().then((r)=>this.paquets = r.filters);
 					}
 				},
 				beforeMount() {
-					searcher.getFilters().then((r)=>this.paquets = r.filters);
+					this.load();
 				}
 			});
 		</script>

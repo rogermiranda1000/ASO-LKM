@@ -25,6 +25,8 @@ read tmp1 tmp2 <<< `echo "$QUERY_STRING" | cut -d "&" -f 6 | awk -F= '{ print $1
 get_info["$tmp1"]="$tmp2"
 read tmp1 tmp2 <<< `echo "$QUERY_STRING" | cut -d "&" -f 7 | awk -F= '{ print $1 " " $2 }'`
 get_info["$tmp1"]="$tmp2"
+read tmp1 tmp2 <<< `echo "$QUERY_STRING" | cut -d "&" -f 8 | awk -F= '{ print $1 " " $2 }'`
+get_info["$tmp1"]="$tmp2"
 
 if [ "$REQUEST_METHOD" != "GET" ] || [ -z "${get_info[action]}"]; then
 	# list all filters
@@ -54,9 +56,13 @@ else
 	if [ ! -z "${get_info[port_dst]}" ]; then
 		cmd=`echo "$cmd --dport ${get_info[port_dst]}"`
 	fi
-	`echo "$cmd -j ${get_info[action]}"`
+	`echo "$cmd -j ${get_info[action]}"` # execute command
+	
+	sudo sh -c 'iptables-save > /etc/iptables.conf' # persist changes
+	
 	echo "content-type: text/plain"
 	echo
 	echo "{\"msg\":\"done\"}"
+	
 fi
 
