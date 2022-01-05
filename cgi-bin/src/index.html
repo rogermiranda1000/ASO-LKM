@@ -88,6 +88,8 @@
 				processes_app.setActive(false);
 				logs_app.setActive(false);
 				tasks_app.setActive(false);
+				paquets_app.setActive(false);
+				music_app.setActive(false);
 				
 				eval(`${el}_app`).setActive(true);
 			}
@@ -99,7 +101,7 @@
 				<a href="#" onclick="show('processes')">Gestió de procéssos</a>
 				<a href="#" onclick="show('logs')">Gestió de logs</a>
 				<a href="#" onclick="">Gestió d'usuaris</a>
-				<a href="#" onclick="">Filtrat de paquets</a>
+				<a href="#" onclick="show('paquets')">Filtrat de paquets</a>
 				<a href="#" onclick="show('tasks')">Programació de tasques</a>
 				<a href="#" onclick="show('music')">Music</a>
 			</nav>
@@ -207,6 +209,10 @@
 						<button @click="add()">+</button>
 					</form>
 				</article>
+			</section>
+			
+			<section id="paquets" v-if="active">
+				<h1>Filtrat de paquets</h1>
 			</section>
 			
 			<section id="music" v-if="active">
@@ -364,7 +370,21 @@
 				methods: {
 					setActive: function(bool) {
 						this.active = bool;
-						if (bool) this.load();
+					}
+				},
+				beforeMount() {
+					
+				}
+			});
+			
+			var paquets_app = new Vue({
+				el: '#paquets',
+				data: {
+					active: false
+				},
+				methods: {
+					setActive: function(bool) {
+						this.active = bool;
 					}
 				},
 				beforeMount() {
