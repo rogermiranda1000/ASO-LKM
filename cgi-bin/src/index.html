@@ -162,7 +162,14 @@
 				border: none;
 				background-color: #F1F1F1;
 			}
-				
+			
+			#logs > div {
+				display: flex;
+			}
+			
+			#logs > div > article:first-child {
+				padding-right: 70px;
+			}
 		</style>
 		<script>
 			class Searcher {
@@ -273,24 +280,26 @@
 			<section id="logs" v-if="active">
 				<h1>Gestió de logs</h1>
 				
-				<article>
-					<h3>Últims accessos</h3>
-					<table>
-					  <tr>
-						<th>Usuari</th>
-						<th>Data</th>
-					  </tr>
-					  <tr v-for="l in last">
-						<td>{{l.user}}</td>
-						<td>{{l.date}}</td>
-					  </tr>
-					</table>
-				</article>
-				
-				<article>
-					<h3>Logs</h3>
-					<textarea readonly ref="logs_text">{{logs}}</textarea>
-				</article>
+				<div>
+					<article>
+						<h3>Últims accessos</h3>
+						<table>
+						  <tr>
+							<th>Usuari</th>
+							<th>Data</th>
+						  </tr>
+						  <tr v-for="l in last">
+							<td>{{l.user}}</td>
+							<td>{{l.date}}</td>
+						  </tr>
+						</table>
+					</article>
+					
+					<article>
+						<h3>Logs</h3>
+						<textarea readonly ref="logs_text">{{logs}}</textarea>
+					</article>
+				</div>
 			</section>
 		</main>
 		
