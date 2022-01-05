@@ -60,7 +60,15 @@
 				}
 				
 				addTask(minute, hour, m_day, month, w_day, script) {
-					return fetch(`cron.sh?action=add&minute=${minute}&hour=${hour}&m_day=${m_day}&month=${month}&w_day=${w_day}&script=${script.replaceAll('&', encodeURIComponent('&'))}`).then(response => {
+					return fetch(`cron.sh?action=add&minute=${minute}&hour=${hour}&m_day=${m_day}&month=${month}&w_day=${w_day}&script=${encodeURIComponent(script)}`).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				removeTask(minute, hour, m_day, month, w_day, script) {
+					return fetch(`cron.sh?action=remove&minute=${minute}&hour=${hour}&m_day=${m_day}&month=${month}&w_day=${w_day}&script=${encodeURIComponent(script)}`).then(response => {
 								return response.json().then(e => {
 									return {...e, status: response.status}
 								});
@@ -330,7 +338,9 @@
 						});
 					},
 					remove: function(task) {
-					
+						searcher.removeTask(task.minute, task.hour, task.m_day, task.month, task.w_day, task.path).then((r)=>{
+								if (r.status === 200) this.load();
+							});
 					},
 					load: function() {
 						searcher.getTasks().then((e)=>this.tasks = e.tasks);

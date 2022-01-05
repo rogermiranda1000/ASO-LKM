@@ -48,6 +48,11 @@ function addCronData() {
 	(sudo crontab -u "$user" -l 2>/dev/null; echo "$*") | sudo crontab -u "$user" -
 }
 
+# @author https://stackoverflow.com/a/6265305/9178470
+urldecode(){
+	echo -e "$(sed 's/+/ /g;s/%\(..\)/\\x\1/g;')"
+}
+
 # action, minute, hour, m_day, month, w_day, script
 declare -A get_info
 read tmp1 tmp2 <<< `echo "$QUERY_STRING" | cut -d "&" -f 1 | awk -F= '{ print $1 " " $2 }'`
@@ -87,6 +92,8 @@ else
 		echo "{\"err\": \"invalid token\"}"
 		exit 1
 	fi
+	
+	get_info['script']=`echo "${get_info[script]}" | urldecode`
 	
 	echo "content-type: text/plain"
 	echo
