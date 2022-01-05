@@ -1,7 +1,34 @@
 #!/bin/bash
 
+# @param user
+function isSudoer() {
+	if [ `sudo -l -U "$1" | grep -c 'is not allowed to run sudo'` -eq 0 ]; then
+		echo "1"
+	else
+		echo "0"
+	fi
+}
+
+# @param '<username> <password>'
+function getToken() {
+	echo -n "$1" | md5sum | awk '{ printf("%s", $1) }'
+}
+
+function getUser() {
+	token=`echo "$HTTP_COOKIE" | grep -P -o '(?<=token=)[^;]+'` # token de login
+	cat "logins.txt" |
+		while read line; do
+			if [ `getToken "$line"` = "$token" ]; then
+				echo "$line" | awk '{ print $1 }'
+				
+				return 0
+			fi
+		done
+	return 1
+}
+
 function getUserCron() {
-	cron=`sudo crontab -u "$1" -l | grep -v '^#'`
+	cron=`sudo crontab -u "$1" -l | grep -v '^#' | grep -v '^$'`
 	
 	if [ -z "$cron" ] || [ `echo "$cron" | grep -c '^no crontab for '` -eq 1 ]; then
 		# no crontab file
@@ -13,7 +40,16 @@ function getUserCron() {
 	echo "${data::-1}" # remove last ','
 }
 
-# minute, hour, m_day, month, w_day, script
+# @param user
+# @param line
+function addCronData() {
+	user="$1"
+	shift
+	(sudo crontab -u "$user" -l 2>/dev/null; echo "$*")
+	(sudo crontab -u "$user" -l 2>/dev/null; echo "$*") | sudo crontab -u "$user" -
+}
+
+# action, minute, hour, m_day, month, w_day, script
 declare -A get_info
 read tmp1 tmp2 <<< `echo "$QUERY_STRING" | cut -d "&" -f 1 | awk -F= '{ print $1 " " $2 }'`
 get_info["$tmp1"]="$tmp2"
@@ -26,6 +62,8 @@ get_info["$tmp1"]="$tmp2"
 read tmp1 tmp2 <<< `echo "$QUERY_STRING" | cut -d "&" -f 5 | awk -F= '{ print $1 " " $2 }'`
 get_info["$tmp1"]="$tmp2"
 read tmp1 tmp2 <<< `echo "$QUERY_STRING" | cut -d "&" -f 6 | awk -F= '{ print $1 " " $2 }'`
+get_info["$tmp1"]="$tmp2"
+read tmp1 tmp2 <<< `echo "$QUERY_STRING" | cut -d "&" -f 7 | awk -F= '{ print $1 " " $2 }'`
 get_info["$tmp1"]="$tmp2"
 
 if [ "$REQUEST_METHOD" != "GET" ] || [ -z "${get_info[script]}"]; then
@@ -42,10 +80,24 @@ if [ "$REQUEST_METHOD" != "GET" ] || [ -z "${get_info[script]}"]; then
 	echo
 	echo "{\"tasks\": [${cron::-1}]}"
 else
-	# add task
-	# TODO
+	user=`getUser`
+	if [ -z "$user" ]; then
+		echo "Status: 401"
+		echo "content-type: text/plain"
+		echo
+		echo "{\"err\": \"invalid token\"}"
+		exit 1
+	fi
+	
 	echo "content-type: text/plain"
 	echo
-	echo "{\"msg\": \"added\"}"
+	if [ "${get_info[action]}" = 'add' ]; then
+		# add a task
+		addCronData "$user" "${get_info[minute]} ${get_info[hour]} ${get_info[m_day]} ${get_info[month]} ${get_info[w_day]} ${get_info[script]}"
+		echo "{\"msg\": \"added\"}"
+	else
+		# remove a task
+		echo "{\"msg\": \"deleted\"}"
+	fi
 fi
 
