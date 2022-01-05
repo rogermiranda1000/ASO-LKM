@@ -11,17 +11,6 @@
 			* {
 				font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 			}
-			
-			/* processes CSS */
-			.sorting-asc::after {
-				content: " [/\\]";
-			}
-			
-			.sorting-desc::after {
-				content: " [v]";
-			}
-			
-			/* logs CSS */
 			.shadow {
 				box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
 			}
@@ -32,7 +21,7 @@
 				display: flex;
 				flex-direction: column;
 				justify-content: space-between;
-
+	
 				background-color: #B8E1FF;
 				position: absolute;
 				top: 0px;
@@ -48,7 +37,7 @@
 				padding: 40px 70px 70px 70px;
 				width: calc(100% - 440px);
 				height: calc(100% - 110px);
-
+	
 				display: flex;
 				flex-direction: row;
 			}
@@ -58,7 +47,7 @@
 				align-items: flex-start;
 				justify-content: flex-start;
 			}
-			a {
+			header a {
 				text-decoration: none;
 				color: black;
 				text-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
@@ -66,7 +55,7 @@
 				margin: 30px 20px 30px 5px;
 				font-weight: 600;
 			}
-
+	
 			h1 {
 				margin-bottom: 35px;
 				font-size: xx-large;
@@ -78,14 +67,7 @@
 			table {
 				border-spacing: 0px 0px;
 			}
-			textarea {
-				width: 800px;
-				height: 320px;
-				font-size: medium;
-				padding: 10px;
-				border: none;
-				background-color: #F1F1F1;
-			}
+	
 			td , th {
 				padding: 6px 30px 6px 30px;
 			}
@@ -112,6 +94,55 @@
 			.pointer:hover {
 				cursor: pointer;
 			}
+	
+			.horizontal {
+				display: flex;
+				flex-direction: row;
+				justify-content: space-between;
+			}
+			
+			/* processes CSS */
+			.sorting-asc::after {
+				content: " [/\\]";
+			}
+			.sorting-desc::after {
+				content: " [v]";
+			}
+			#statsHead {
+				margin-bottom: 20px;
+				width: 100%;
+			}
+			#statsHead > div {
+				background-color: #84D3FF;
+				padding: 10px;
+			}
+			#statsHead > div:first-child {
+				background-color: #C5EAFF;
+				margin-right: 30px;
+			}
+			#statsHead > div > span{
+				font-weight: 1000;
+			}
+			#tableProcess {
+				overflow-y: scroll;
+				height: 720px;
+				display: block;
+			}
+			#tableProcess tr:first-child{
+				position: sticky;
+				top: 0;
+			}
+	
+			/* logs CSS */
+			textarea {
+				width: 800px;
+				height: 320px;
+				font-size: medium;
+				padding: 10px;
+				border: none;
+				background-color: #F1F1F1;
+			}
+				
 		</style>
 		<script>
 			class Searcher {
@@ -186,14 +217,15 @@
 		<main>
 			<section id="processes" v-if="active">
 				<h1>Gestió de processos</h1>
+				<div id="statsHead" class="horizontal">
+					<div>Temps encès: <span>{{uptime}}</span></div>
+					<div>CPU: <span>{{cpu_usage()}}</span></div>
+					<div>RAM: <span>{{ram_usage}}</span></div>
+					<div>Disc: <span>{{disc_usage}}</span></div>
+					<div>Auto-reload <input type="checkbox" v-model="reload" @change="reloadChanged()" /></div>
+				</div>
 				
-				<div>Temps encès: <span>{{uptime}}</span></div>
-				<div>CPU: <span>{{cpu_usage()}}</span></div>
-				<div>RAM: <span>{{ram_usage}}</span></div>
-				<div>Disc: <span>{{disc_usage}}</span></div>
-				<div>Auto-reload <input type="checkbox" v-model="reload" @change="reloadChanged()" /></div>
-				
-				<table>
+				<table id="tableProcess">
 				  <tr>
 					<th v-bind:class="{ 'sorting-asc': sort_by === 'command' && !desc, 'sorting-desc': sort_by === 'command' && desc }" @click="setSort('command')">Nom</th>
 					<th v-bind:class="{ 'sorting-asc': sort_by === 'user' && !desc, 'sorting-desc': sort_by === 'user' && desc }" @click="setSort('user')">Usuari</th>
