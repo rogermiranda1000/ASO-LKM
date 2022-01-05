@@ -98,10 +98,10 @@
 			<nav>
 				<a href="#" onclick="show('processes')">Gestió de procéssos</a>
 				<a href="#" onclick="show('logs')">Gestió de logs</a>
-				<a href="#" onclick="">Gestió de logs</a>
 				<a href="#" onclick="">Gestió d'usuaris</a>
 				<a href="#" onclick="">Filtrat de paquets</a>
 				<a href="#" onclick="show('tasks')">Programació de tasques</a>
+				<a href="#" onclick="show('music')">Music</a>
 			</nav>
 			<a href="#" onclick="logout()">Logout</a>
 		</header>
@@ -207,6 +207,10 @@
 						<button @click="add()">+</button>
 					</form>
 				</article>
+			</section>
+			
+			<section id="music" v-if="active">
+				<h1>Música</h1>
 			</section>
 		</main>
 		
@@ -349,6 +353,22 @@
 				beforeMount() {
 					this.pathChanged();
 					this.load();
+				}
+			});
+			
+			var music_app = new Vue({
+				el: '#music',
+				data: {
+					active: false
+				},
+				methods: {
+					setActive: function(bool) {
+						this.active = bool;
+						if (bool) this.load();
+					}
+				},
+				beforeMount() {
+					
 				}
 			});
 		</script>
