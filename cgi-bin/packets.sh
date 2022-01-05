@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function getClass() {
-	json=`sudo iptables -L "$1" | awk 'FNR > 2{ printf("{\"action\":\"%s\",\"protocol\":\"%s\",\"ip_src\":\"%s\",\"ip_dst\":\"%s\"", $1, $2, $4, $5); for(i=6; i<=NF; i++) { split($i,v,":"); if (length(v[2]) > 0) printf(",\"%s\":\"%s\"", v[1], v[2]); } printf("},") }'`
+	json=`sudo iptables -L "$1" | awk 'FNR > 2{ printf("{\"action\":\"%s\",\"protocol\":\"%s\",\"ip_src\":\"%s\",\"ip_dst\":\"%s\"", $1, $2, $4 == "anywhere" ? "0.0.0.0/0" : $4, $5 == "anywhere" ? "0.0.0.0/0" : $5); for(i=6; i<=NF; i++) { split($i,v,":"); if (length(v[2]) > 0) printf(",\"%s\":\"%s\"", v[1], v[2]); } printf("},") }'`
 	if [ -z "$json" ]; then
 		echo -n "[]"
 	else
@@ -49,12 +49,14 @@ else
 	fi
 	if [ ! -z "${get_info[protocol]}" ]; then
 		cmd=`echo "$cmd -p ${get_info[protocol]}"`
-	fi
-	if [ ! -z "${get_info[port_src]}" ]; then
-		cmd=`echo "$cmd --sport ${get_info[port_src]}"`
-	fi
-	if [ ! -z "${get_info[port_dst]}" ]; then
-		cmd=`echo "$cmd --dport ${get_info[port_dst]}"`
+		if [ "${get_info[protocol]}" = "tcp" ] || [ "${get_info[protocol]}" = "udp" ]; then
+			if [ ! -z "${get_info[port_src]}" ]; then
+				cmd=`echo "$cmd --sport ${get_info[port_src]}"`
+			fi
+			if [ ! -z "${get_info[port_dst]}" ]; then
+				cmd=`echo "$cmd --dport ${get_info[port_dst]}"`
+			fi
+		fi
 	fi
 	`echo "$cmd -j ${get_info[action]}"` # execute command
 	

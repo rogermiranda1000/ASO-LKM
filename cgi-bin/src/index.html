@@ -271,9 +271,16 @@
 					</td>
 					<td><input type="text" v-model="filter_ip_src" /></td>
 					<td><input type="text" v-model="filter_ip_dst" /></td>
-					<td><input type="text" v-model="filter_port_src" /></td>
-					<td><input type="text" v-model="filter_port_dst" /></td>
-					<td><input type="text" v-model="filter_protocol" /></td>
+					<td><input type="text" v-if="filter_protocol === 'tcp' || filter_protocol === 'udp'" v-model="filter_port_src" /></td>
+					<td><input type="text" v-if="filter_protocol === 'tcp' || filter_protocol === 'udp'" v-model="filter_port_dst" /></td>
+					<td>
+						<select v-model="filter_protocol">
+							<option value="tcp">tcp</option>
+							<option value="udp">udp</option>
+							<option value="icmp">icmp</option>
+							<option value="all">all</option>
+						</select>
+					</td>
 					<td>
 						<select v-model="filter_action">
 							<option value="ACCEPT">ACCEPT</option>
@@ -458,8 +465,8 @@
 					filter_ip_dst: '',
 					filter_port_src: '',
 					filter_port_dst: '',
-					filter_protocol: '',
-					filter_action: 'DROP'
+					filter_protocol: 'tcp',
+					filter_action: 'ACCEPT'
 				},
 				methods: {
 					setActive: function(bool) {
@@ -469,7 +476,7 @@
 						searcher.addFilter(this.filter_class, this.filter_ip_src, this.filter_ip_dst, this.filter_port_src, this.filter_port_dst, this.filter_protocol, this.filter_action).then((e)=>this.load());
 					},
 					remove: function(clase, packet) {
-						searcher.removeFilter(clase, packet.ip_src, packet.ip_dst, packet.spt, packet.dpt, packet.protocol, packet.action).then((e)=>this.load());
+						searcher.removeFilter(clase, packet.ip_src, packet.ip_dst, packet.spt === undefined ? '' : packet.spt, packet.dpt === undefined ? '' : packet.dpt, packet.protocol, packet.action).then((e)=>this.load());
 					},
 					load: function() {
 						searcher.getFilters().then((r)=>this.paquets = r.filters);
