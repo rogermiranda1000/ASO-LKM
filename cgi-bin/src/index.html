@@ -12,7 +12,7 @@
 				font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 				--header-width: 300px;
 			}
-			.shadow , .error , .info {
+			.shadow , .error , .info , #tasks table {
 				box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
 			}
 			body {
@@ -44,7 +44,7 @@
 			
 			.error , .info {
 				position: relative;
-   				width: 65%;
+				   width: 65%;
 				display: flex;
 				justify-content: center;
 				align-items: center;
@@ -60,8 +60,8 @@
 			}
 			.error > button , .info > button {
 				position: absolute;
-   				top: 2px;
-   				right: 2px;
+				   top: 2px;
+				   right: 2px;
 				background-color: transparent;
 				border: none;
 				z-index: 100;
@@ -73,7 +73,7 @@
 			.info {
 				background-color: rgb(95, 175, 95);
 			}
-
+	
 			header > nav {
 				display: flex;
 				flex-direction: column;
@@ -144,6 +144,34 @@
 				flex-direction: row;
 				justify-content: space-between;
 			}
+			#processes table button, #tasks table button {
+				background-color: red;
+				transition: background-color 0.3s;
+				color: white;
+				font-weight: bolder;
+				font-size: large;
+				border: none;
+				border-radius: 100px;
+				box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
+				width: 28px;
+				height: 28px;
+			}
+	
+			#tableProcess , #tasks table {
+				overflow-y: scroll;
+				table-layout: fixed;
+				height: 70vh;
+				display: block;
+			}
+			#processes, #tableProcess, #tableProcess tr:first-child > th , #tasks table, #tasks table tr:first-child > th{
+				width: 100%;
+			}
+	
+			/* tasks CSS */
+			#tasks table {
+				background-color: #F8F8F8;
+				height: 80vh;
+			}
 			
 			/* processes CSS */
 			.sorting-asc::after {
@@ -171,12 +199,6 @@
 			#statsHead div > span {
 				font-weight: 1000;
 			}
-			#tableProcess {
-				overflow-y: scroll;
-				table-layout: fixed;
-				height: 70vh;
-				display: block;
-			}
 			#tableProcess tr:first-child{
 				position: sticky;
 				top: 0;
@@ -185,23 +207,8 @@
 			/*#tableProcess tr:first-child > th {
 				width: calc(70vh / 6);
 			}*/
-			#processes, #tableProcess, #tableProcess tr:first-child > th {
-				width: 100%;
-			}
 			#tableProcess tr > td {
 				text-align: center;
-			}
-			#processes table button {
-				background-color: red;
-				transition: background-color 0.3s;
-				color: white;
-				font-weight: bolder;
-				font-size: large;
-				border: none;
-				border-radius: 100px;
-				box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
-				width: 28px;
-				height: 28px;
 			}
 			#processes table button:hover {
 				background-color: rgb(150, 26, 26);
