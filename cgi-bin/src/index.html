@@ -164,12 +164,8 @@
 			}
 			#tableProcess {
 				overflow-y: scroll;
-<<<<<<< HEAD
 				table-layout: fixed;
 				height: 70vh;
-=======
-				height: 75vh;
->>>>>>> c316dffda3b7e386eac763b08754f5580fee6f61
 				display: block;
 			}
 			#tableProcess tr:first-child{
@@ -260,20 +256,13 @@
 					window.location = '/'; // ja s'ha fet logout, torna a la pàgina principal
 				});
 			}
-			
-			function show(el) {
-				processes_app.setActive(false);
-				logs_app.setActive(false);
-				
-				eval(`${el}_app`).setActive(true);
-			}
 		</script>
 	</head>
 	<body>
 		<header>
 			<nav>
-				<a href="#" onclick="show('processes')">Gestió de procéssos</a>
-				<a href="#" onclick="show('logs')">Gestió de logs</a>
+				<a href="#" id="processes_a" onmouseover="show('processes')">Gestió de procéssos</a>
+				<a href="#" id="logs_a" onmouseover="show('logs')">Gestió de logs</a>
 				<a href="#" onclick="">Gestió de logs</a>
 				<a href="#" onclick="">Gestió d'usuaris</a>
 				<a href="#" onclick="">Filtrat de paquets</a>
@@ -353,6 +342,18 @@
 		</main>
 		
 		<script>
+			let processes_a = document.getElementById('processes_a'),
+				logs_a = document.getElementById('logs_a');
+			function show(el) {
+				processes_app.setActive(false);
+				logs_app.setActive(false);
+				processes_a.className = '';
+				logs_a.className = '';
+				
+				eval(`${el}_app`).setActive(true);
+				eval(`${el}_a`).className = 'selected';
+			}
+			
 			var processes_app = new Vue({
 				el: '#processes',
 				data: {
