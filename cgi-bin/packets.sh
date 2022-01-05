@@ -1,5 +1,24 @@
 #!/bin/bash
 
+# Obtè el token d'usuari
+# @param '<username> <password>'
+function getToken() {
+	echo -n "$1" | md5sum | awk '{ printf("%s", $1) }'
+}
+
+function getUser() {
+	token=`echo "$HTTP_COOKIE" | grep -P -o '(?<=token=)[^;]+'` # token de login
+	cat "logins.txt" |
+		while read line; do
+			if [ `getToken "$line"` = "$token" ]; then
+				echo "$line" | awk '{ print $1 }'
+				
+				return 0
+			fi
+		done
+	return 1
+}
+
 function getClass() {
 	json=`sudo iptables -L "$1" | awk 'FNR > 2{ printf("{\"action\":\"%s\",\"protocol\":\"%s\",\"ip_src\":\"%s\",\"ip_dst\":\"%s\"", $1, $2, $4 == "anywhere" ? "0.0.0.0/0" : $4, $5 == "anywhere" ? "0.0.0.0/0" : $5); for(i=6; i<=NF; i++) { split($i,v,":"); if (length(v[2]) > 0) printf(",\"%s\":\"%s\"", v[1], v[2]); } printf("},") }'`
 	if [ -z "$json" ]; then
@@ -61,6 +80,8 @@ else
 	`echo "$cmd -j ${get_info[action]}"` # execute command
 	
 	sudo sh -c 'iptables-save > /etc/iptables.conf' # persist changes
+	
+	logger -p local7.info `echo -n "User "; getUser; echo -n " changed firewall rule."`
 	
 	echo "content-type: text/plain"
 	echo
