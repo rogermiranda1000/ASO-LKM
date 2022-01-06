@@ -56,12 +56,12 @@ if [ "$REQUEST_METHOD" != "POST" ] || [ -z "${post_info[action]}" ]; then
 	fi
 else
 	user=`getUser`
-	if [ `isSudoer "$user"` = "false" ] && [ "${post_info[action]}" != "add" ] && [ "$user" != "${post_info[user]}" ] && [ "${post_info[action]}" != "set" ]; then
+	if [ `isSudoer "$user"` = "false" ] && [ "${post_info[action]}" != "add" ] && ([ "$user" != "${post_info[user]}" ] || [ "${post_info[action]}" == "set" ]); then
 		# si es vol editar un usuari o eliminar un usuari que no és ell mateix has de ser root
 		echo "Status: 401"
 		echo "content-type: text/plain"
 		echo
-		echo "{\"err\": \"invalid token\"}"
+		echo "{\"err\": \"invalid permissions\"}"
 		exit 1
 	fi
 	

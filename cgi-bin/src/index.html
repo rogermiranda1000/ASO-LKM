@@ -399,7 +399,7 @@
 								headers: {
 								  'Content-Type': 'application/x-www-form-urlencoded'
 								},
-								body: `action=set&user=${username}&setter_value=${bool ? 'true' : 'false'}`
+								body: `action=set&setter=superuser&user=${username}&setter_value=${bool ? 'true' : 'false'}`
 							}).then(response => {
 								return response.json().then(e => {
 									return {...e, status: response.status}
@@ -615,6 +615,20 @@
 				
 				<article>
 					<h3>Usuaris</h3>
+					
+					<div>
+						<div>
+							<span v-for="user in users" v-bind:class="{ selected: selected === user}" @mouseover="selected = user">{{user.username}}</span>
+						</div>
+						<div v-if="selected !== null">
+							<div>
+								<input type="checkbox" v-model="selected.superuser" @change="superuserChange()" />
+								Sudoer
+							</div>
+							<!-- altres divs... -->
+							<button @click="remove()">eliminar</button>
+						</div>
+					</div>
 				</article>
 				
 				<article>
@@ -625,7 +639,7 @@
 						<input type="text" id="name" v-model="username" />
 						<label for="password">Contrasenya</label>
 						<input type="password" id="password" v-model="password" />
-						<label for="check_password">Confirmar ontrasenya</label>
+						<label for="check_password">Confirmar contrasenya</label>
 						<input type="password" id="check_password" v-model="check_password" />
 						<button @click="create()">+</button>
 					</form>
@@ -874,6 +888,9 @@
 					password: '',
 					check_password: '',
 					
+					users: [],
+					selected: null,
+					
 					info: []
 				},
 				methods: {
@@ -886,6 +903,28 @@
 							if (r.err === undefined) this.appendInfo('Usuari afegit.');
 							else this.appendError(r.err);
 						});
+					},
+					superuserChange: function() {
+						if (this.selected === null) return; // en principi mai hauria de passar
+						searcher.setSudo(this.selected.username, this.selected.superuser).then((r)=>{
+							if (r.status === 200) this.appendInfo('Permis cambiat.');
+							else this.appendError(r.err);
+							this.load();
+						});
+					},
+					remove: function() {
+						if (this.selected === null) return; // en principi mai hauria de passar
+						searcher.removeUser(this.selected.username).then((r)=>{
+							if (r.status === 200) {
+								this.appendInfo('Usuari eliminat.');
+								this.load();
+								// TODO eliminar 
+							}
+							else this.appendError(r.err);
+						});
+					},
+					load: function() {
+						searcher.getUsers().then((r)=>this.users = r.users);
 					},
 					
 					/* popup functions */
@@ -908,7 +947,7 @@
 					}
 				},
 				beforeMount() {
-					
+					this.load();
 				}
 			});
 			
