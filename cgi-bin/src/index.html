@@ -918,13 +918,17 @@
 							if (r.status === 200) {
 								this.appendInfo('Usuari eliminat.');
 								this.load();
-								// TODO eliminar 
+								// TODO eliminar
 							}
 							else this.appendError(r.err);
 						});
 					},
 					load: function() {
-						searcher.getUsers().then((r)=>this.users = r.users);
+						searcher.getUsers().then((r)=>{
+							this.users = r.users;
+							if (this.selected !== null) this.selected = this.users.filter(u => u.username === this.selected.username)[0];
+							if (this.selected === undefined) this.selected = null;
+						});
 					},
 					
 					/* popup functions */
