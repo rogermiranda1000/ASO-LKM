@@ -27,7 +27,7 @@ function getUser() {
 	return 1
 }
 
-# action [add/remove/set], [setter], [setter_value], user, [password]
+# action [add/remove/set], [setter [superuser]], [setter_value], user, [password]
 declare -A post_info
 read post_data
 read tmp1 tmp2 <<< `echo "$post_data" | cut -d "&" -f 1 | awk -F= '{ print $1 " " $2 }'`
@@ -81,9 +81,23 @@ else
 			;;
 		
 		"set" )
-			echo "content-type: text/plain"
-			echo
-			echo "{\"msg\": \"setted\"}"
+			if [ "${post_info[setter]}" = "superuser" ]; then
+				if [ "${post_info[setter_value]}" = "true" ]; then
+					sudo usermod -aG sudo "${post_info[user]}" # add user to sudoers
+				else
+					sudo deluser "${post_info[user]}" sudo >/dev/null # remove user from sudoers
+				fi
+				
+				echo "content-type: text/plain"
+				echo
+				echo "{\"msg\": \"superuser setted\"}"
+			else
+				echo "Status: 400"
+				echo "content-type: text/plain"
+				echo
+				echo "{\"err\": \"invalid setter\"}"
+			fi
+			
 			;;
 		
 		*)
