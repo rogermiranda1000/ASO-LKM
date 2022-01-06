@@ -493,7 +493,7 @@
 					<td><input type="text" v-model="script_month" onkeypress="validateCron(event)" /></td>
 					<td><input type="text" v-model="script_w_day" onkeypress="validateCron(event)" /></td>
 					<td>
-						<input type="text" ref="script" v-model="script_path" @keypress="pathChanging()" list="files" />
+						<input type="text" ref="script" v-model="script_path" @keypress="pathChanging()" list="files" v-on:keydown.tab="interruptTab" />
 						<datalist id="files">
 							<option v-for="f in paths" v-bind:value="f.path" />
 						</datalist>
@@ -753,6 +753,10 @@
 						searcher.removeTask(task.minute, task.hour, task.m_day, task.month, task.w_day, task.script, task.user).then((r)=>{
 								if (r.status === 200) this.load();
 							});
+					},
+					interruptTab: function() {
+						this.$refs.script.focus();
+						event.preventDefault();
 					},
 					pathChanging: function() {
 						setTimeout(this.pathChanged, 1); // keypress encara no ha afegit la tecla a la variable
