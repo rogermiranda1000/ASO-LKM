@@ -356,6 +356,56 @@
 								});
 							});
 				}
+				
+				getUsers() {
+					return fetch('users.sh').then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				addUser(username, password) {
+					return fetch('users.sh', {
+								method: 'POST',
+								headers: {
+								  'Content-Type': 'application/x-www-form-urlencoded'
+								},
+								body: `action=add&user=${username}&password=${password}`
+							}).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				removeUser(username) {
+					return fetch('users.sh', {
+								method: 'POST',
+								headers: {
+								  'Content-Type': 'application/x-www-form-urlencoded'
+								},
+								body: `action=remove&user=${username}`
+							}).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				setSudo(username, bool) {
+					return fetch('users.sh', {
+								method: 'POST',
+								headers: {
+								  'Content-Type': 'application/x-www-form-urlencoded'
+								},
+								body: `action=set&user=${username}&setter_value=${bool ? 'true' : 'false'}`
+							}).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
 			};
 			
 			const searcher = new Searcher();
@@ -562,6 +612,29 @@
 			
 			<section id="users" v-if="active">
 				<h1>Gestió d'usuaris</h1>
+				
+				<article>
+					<h3>Usuaris</h3>
+				</article>
+				
+				<article>
+					<h3>Crear</h3>
+					
+					<form onsubmit="return false;"> <!-- method="post" enctype="application/x-www-form-urlencoded" -->
+						<label for="name">Nom</label>
+						<input type="text" id="name" v-model="username" />
+						<label for="password">Contrasenya</label>
+						<input type="password" id="password" v-model="password" />
+						<label for="check_password">Confirmar ontrasenya</label>
+						<input type="password" id="check_password" v-model="check_password" />
+						<button @click="create()">+</button>
+					</form>
+				</article>
+				
+				<div v-bind:class="i.style" v-for="i in info">
+					{{i.msg}}
+					<button @click="discardVar(i.id)">x</button>
+				</div>
 			</section>
 			
 			<section id="music" v-if="active">
@@ -795,11 +868,43 @@
 			var users_app = new Vue({
 				el: '#users',
 				data: {
-					active: false
+					active: false,
+					
+					username: '',
+					password: '',
+					check_password: '',
+					
+					info: []
 				},
 				methods: {
 					setActive: function(bool) {
 						this.active = bool;
+					},
+					create: function() {
+						if (this.password != this.check_password) this.appendError('Els passwords no coincideixen.');
+						else searcher.addUser(this.username, this.password).then((r)=>{
+							if (r.err === undefined) this.appendInfo('Usuari afegit.');
+							else this.appendError(r.err);
+						});
+					},
+					
+					/* popup functions */
+					appendVar(_msg, _style) {
+						let id = 0;
+						if (this.info.length > 0) id = this.info[this.info.length - 1].id + 1;
+						
+						this.info.push({id:id, msg:_msg, style:_style});
+						
+						setTimeout(()=>this.discardVar(id), 8000);
+					},
+					appendError: function(err) {
+						this.appendVar(err, 'error');
+					},
+					appendInfo: function(msg) {
+						this.appendVar(msg, 'info');
+					},
+					discardVar: function(id) {
+						this.info = this.info.filter(e => e.id !== id);
 					}
 				},
 				beforeMount() {

@@ -67,6 +67,8 @@ else
 	
 	case "${post_info[action]}" in
 		"add" )
+			# logger ja s'afegeix a create_user_post.sh
+			
 			echo "content-type: text/plain"
 			echo
 			curl -d "username=${post_info[user]}&password=${post_info[password]}" -H "Content-Type: application/x-www-form-urlencoded" -X POST http://localhost/create_user_post.sh
@@ -74,6 +76,8 @@ else
 			
 		"remove" )
 			sudo userdel -r "${post_info[user]}"
+			
+			logger -p local7.info "User $user removed ${post_info[user]}."
 			
 			echo "content-type: text/plain"
 			echo
@@ -87,6 +91,8 @@ else
 				else
 					sudo deluser "${post_info[user]}" sudo >/dev/null # remove user from sudoers
 				fi
+				
+				logger -p local7.info "User $user setted ${post_info[user]}'s permissions."
 				
 				echo "content-type: text/plain"
 				echo
