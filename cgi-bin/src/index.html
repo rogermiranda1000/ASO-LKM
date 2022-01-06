@@ -193,11 +193,9 @@
 			}
 			.accept , option[value=ACCEPT] , select[data-chosen=ACCEPT] {
 				background-color: rgb(118, 206, 118);
-				border-radius: 6px;
 			}
 			.drop , option[value=DROP] , select[data-chosen=DROP] {
 				background-color: rgb(236, 96, 96);
-				border-radius: 6px;
 			}
 			#paquets select {
 				height: 25px;
@@ -552,7 +550,7 @@
 						</select>
 					</td>
 					<td>
-						<select v-model="filter_action">
+						<select v-model="filter_action" v-bind:data-chosen="filter_action" >
 							<option value="ACCEPT">ACCEPT</option>
 							<option value="DROP">DROP</option>
 						</select>
