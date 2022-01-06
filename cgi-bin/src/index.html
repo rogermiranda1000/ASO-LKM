@@ -172,6 +172,11 @@
 			#processes, #tableProcess, #tableProcess tr:first-child > th {
 				width: 100%;
 			}
+			#tableProcess tr:first-child , #tasks tr:first-child {
+				position: sticky;
+				top: 0;
+				background-color: #84D3FF;
+			}
 	
 			/* tasks CSS */
 			#tasks table, #tasks table tr:first-child > th {
@@ -217,11 +222,7 @@
 			#statsHead div > span {
 				font-weight: 1000;
 			}
-			#tableProcess tr:first-child{
-				position: sticky;
-				top: 0;
-				background-color: #84D3FF;
-			}
+			
 			/*#tableProcess tr:first-child > th {
 				width: calc(70vh / 6);
 			}*/
