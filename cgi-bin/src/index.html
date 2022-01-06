@@ -172,6 +172,11 @@
 			#processes, #tableProcess, #tableProcess tr:first-child > th {
 				width: 100%;
 			}
+			#tableProcess tr:first-child , #tasks tr:first-child {
+				position: sticky;
+				top: 0;
+				background-color: #84D3FF;
+			}
 	
 			/* tasks CSS */
 			#tasks table, #tasks table tr:first-child > th {
@@ -183,6 +188,12 @@
 			}
 			#tasks table tr:last-child > td:first-child {
 				font-weight: bold;
+			}
+			#tasks table input {
+            	width: 17vw;
+			}
+			#tasks table input:last-child {
+				width: 2vw;
 			}
 			
 			/* processes CSS */
@@ -211,11 +222,7 @@
 			#statsHead div > span {
 				font-weight: 1000;
 			}
-			#tableProcess tr:first-child{
-				position: sticky;
-				top: 0;
-				background-color: #84D3FF;
-			}
+			
 			/*#tableProcess tr:first-child > th {
 				width: calc(70vh / 6);
 			}*/
@@ -340,6 +347,15 @@
 					window.location = '/'; // ja s'ha fet logout, torna a la pàgina principal
 				});
 			}
+			
+			function validateCron(e) {
+				var regex = /^[0-9/\-,*]+$/;
+				var str = String.fromCharCode(!e.charCode ? e.which : e.charCode);
+				if (regex.test(str)) return true;
+
+				e.preventDefault();
+				return false;
+			}
 		</script>
 	</head>
 	<body>
@@ -453,11 +469,11 @@
 				  </tr>
 				  <tr>
 					<td>Crear</td>
-					<td><input type="text" v-model="script_minute" /></td>
-					<td><input type="text" v-model="script_hour" /></td>
-					<td><input type="text" v-model="script_m_day" /></td>
-					<td><input type="text" v-model="script_month" /></td>
-					<td><input type="text" v-model="script_w_day" /></td>
+					<td><input type="text" v-model="script_minute" onkeypress="validateCron(event)" /></td>
+					<td><input type="text" v-model="script_hour" onkeypress="validateCron(event)" /></td>
+					<td><input type="text" v-model="script_m_day" onkeypress="validateCron(event)" /></td>
+					<td><input type="text" v-model="script_month" onkeypress="validateCron(event)" /></td>
+					<td><input type="text" v-model="script_w_day" onkeypress="validateCron(event)" /></td>
 					<td>
 						<input type="text" ref="script" v-model="script_path" @keypress="pathChanging()" list="files" />
 						<datalist id="files">
@@ -695,7 +711,17 @@
 					},
 					add: function() {
 						searcher.addTask(this.script_minute, this.script_hour, this.script_m_day, this.script_month, this.script_w_day, this.script_path).then((r)=>{
-								if (r.status === 200) this.load();
+								if (r.status === 200) {
+									this.load();
+									
+									// reset
+									this.script_path = '';
+									this.script_minute = '';
+									this.script_hour = '';
+									this.script_m_day = '';
+									this.script_month = '';
+									this.script_w_day = '';
+								}
 							});
 					},
 					remove: function(task) {
