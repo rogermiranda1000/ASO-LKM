@@ -316,6 +316,15 @@
 					window.location = '/'; // ja s'ha fet logout, torna a la pàgina principal
 				});
 			}
+			
+			function validateCron(e) {
+				var regex = /^[0-9/\-,*]+$/;
+				var str = String.fromCharCode(!e.charCode ? e.which : e.charCode);
+				if (regex.test(str)) return true;
+
+				e.preventDefault();
+				return false;
+			}
 		</script>
 	</head>
 	<body>
@@ -429,11 +438,11 @@
 				  </tr>
 				  <tr>
 					<td>Crear</td>
-					<td><input type="text" v-model="script_minute" /></td>
-					<td><input type="text" v-model="script_hour" /></td>
-					<td><input type="text" v-model="script_m_day" /></td>
-					<td><input type="text" v-model="script_month" /></td>
-					<td><input type="text" v-model="script_w_day" /></td>
+					<td><input type="text" v-model="script_minute" onkeypress="validateCron(event)" /></td>
+					<td><input type="text" v-model="script_hour" onkeypress="validateCron(event)" /></td>
+					<td><input type="text" v-model="script_m_day" onkeypress="validateCron(event)" /></td>
+					<td><input type="text" v-model="script_month" onkeypress="validateCron(event)" /></td>
+					<td><input type="text" v-model="script_w_day" onkeypress="validateCron(event)" /></td>
 					<td>
 						<input type="text" ref="script" v-model="script_path" @keypress="pathChanging()" list="files" />
 						<datalist id="files">
