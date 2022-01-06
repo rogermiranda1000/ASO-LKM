@@ -28,17 +28,24 @@ function getUser() {
 }
 
 token=`echo "$HTTP_COOKIE" | grep -P -o '(?<=token=)[^;]+'` # token de login
-echo "content-type: text/html; charset=utf-8"
-echo
-echo -n "{\"result\":\""
 user=`getUser "$token"`
 pid=`echo "$QUERY_STRING" | awk -F= '{print $2}'`
 if [ "$user" != '' ] && [ `isSudoer "$user"` == "1" ]; then
 	# the user is sudoer -> run kill always
 	sudo kill -9 "$pid"
-	echo -n "killed as sudo"
+	echo "content-type: text/plain"
+	echo
+	echo "{\"result\":\"killed as sudo\"}"
 	logger -p local7.info "User $user running 'kill -9 $pid' as sudo..."
 else
-	./login.sh "$token" kill -9 "$pid"
+	if [ `./login.sh "$token" kill -9 "$pid" | grep -c 'Operation not permitted'` -eq 0 ]; then
+		echo "content-type: text/plain"
+		echo
+		echo "{\"result\":\"killed\"}"
+	else
+		echo "Status: 401"
+		echo "content-type: text/plain"
+		echo
+		echo "{\"err\":\"Operation not permitted\"}"
+	fi
 fi
-echo "\"}"
