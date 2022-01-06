@@ -800,7 +800,14 @@
 						this.active = bool;
 					},
 					add: function() {
-						searcher.addFilter(this.filter_class, this.filter_ip_src, this.filter_ip_dst, this.filter_port_src, this.filter_port_dst, this.filter_protocol, this.filter_action).then((e)=>this.load());
+						searcher.addFilter(this.filter_class, this.filter_ip_src, this.filter_ip_dst, this.filter_port_src, this.filter_port_dst, this.filter_protocol, this.filter_action).then((e)=>{
+							this.load();
+							
+							this.filter_ip_src = '';
+							this.filter_ip_dst = '';
+							this.filter_port_src = '';
+							this.filter_port_dst = '';
+						});
 					},
 					remove: function(clase, packet) {
 						searcher.removeFilter(clase, packet.ip_src, packet.ip_dst, packet.spt === undefined ? '' : packet.spt, packet.dpt === undefined ? '' : packet.dpt, packet.protocol, packet.action).then((e)=>this.load());
