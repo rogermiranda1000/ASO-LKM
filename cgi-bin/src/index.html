@@ -22,7 +22,7 @@
 				display: flex;
 				flex-direction: column;
 				justify-content: space-between;
-	
+
 				background-color: #B8E1FF;
 				position: absolute;
 				top: 0px;
@@ -37,14 +37,14 @@
 				padding: 40px 70px 70px 70px;
 				width: calc(100% - 440px);
 				height: calc(100% - 110px);
-	
+
 				display: flex;
 				flex-direction: row;
 			}
 			
 			.error , .info {
 				position: relative;
-				   width: 65%;
+				width: 65%;
 				display: flex;
 				justify-content: center;
 				align-items: center;
@@ -60,8 +60,8 @@
 			}
 			.error > button , .info > button {
 				position: absolute;
-				   top: 2px;
-				   right: 2px;
+				top: 2px;
+				right: 2px;
 				background-color: transparent;
 				border: none;
 				z-index: 100;
@@ -73,7 +73,7 @@
 			.info {
 				background-color: rgb(95, 175, 95);
 			}
-	
+
 			header > nav {
 				display: flex;
 				flex-direction: column;
@@ -99,7 +99,7 @@
 				color: white;
 				box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.705);
 			}
-	
+
 			h1 {
 				margin-bottom: 35px;
 				font-size: xx-large;
@@ -111,7 +111,7 @@
 			table {
 				border-spacing: 0px 0px;
 			}
-	
+
 			td , th {
 				padding: 6px 30px 6px 30px;
 			}
@@ -141,7 +141,7 @@
 			button[disabled] {
 				cursor: not-allowed;
 			}
-	
+
 			.horizontal {
 				display: flex;
 				flex-direction: row;
@@ -162,8 +162,8 @@
 			table button[disabled] {
 				background-color: gray;
 			}
-	
-			#tableProcess , #tasks table {
+
+			#tableProcess , #tasks table , #paquets table{
 				overflow-y: scroll;
 				table-layout: fixed;
 				height: 70vh;
@@ -172,17 +172,47 @@
 			#processes, #tableProcess, #tableProcess tr:first-child > th {
 				width: 100%;
 			}
+			#tableProcess tr:first-child , #tasks tr:first-child {
+				position: sticky;
+				top: 0;
+				background-color: #84D3FF;
+			}
 	
 			/* tasks CSS */
 			#tasks table, #tasks table tr:first-child > th {
 				width: 100%;
 			}
-			#tasks table {
+			#tasks table , #paquets table{
 				background-color: #F8F8F8;
 				height: 80vh;
 			}
+
+			/* paquets CSS */
+			#paquets tr:first-child th {
+				padding: 22px;
+			}
+			.accept , option[value=ACCEPT] , select[data-chosen=ACCEPT] {
+				background-color: rgb(118, 206, 118);
+			}
+			.drop , option[value=DROP] , select[data-chosen=DROP] {
+				background-color: rgb(236, 96, 96);
+			}
+			#paquets select {
+				height: 25px;
+			}
+
+			/* tasks CSS */
+			#tasks table, #tasks table tr:first-child > th {
+				width: 100%;
+			}
 			#tasks table tr:last-child > td:first-child {
 				font-weight: bold;
+			}
+			#tasks table input {
+				width: 17vw;
+			}
+			#tasks table input:last-child {
+				width: 2vw;
 			}
 			
 			/* processes CSS */
@@ -211,11 +241,6 @@
 			#statsHead div > span {
 				font-weight: 1000;
 			}
-			#tableProcess tr:first-child{
-				position: sticky;
-				top: 0;
-				background-color: #84D3FF;
-			}
 			/*#tableProcess tr:first-child > th {
 				width: calc(70vh / 6);
 			}*/
@@ -225,7 +250,7 @@
 			#processes table button:hover {
 				background-color: rgb(150, 26, 26);
 			}
-	
+
 			/* logs CSS */
 			textarea {
 				width: 50vw;
@@ -307,6 +332,30 @@
 								});
 							});
 				}
+				
+				getFilters() {
+					return fetch('packets.sh').then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				addFilter(clase, ip_src, ip_dst, port_src, port_dst, protocol, action) {
+					return fetch(`packets.sh?do=A&class=${clase}&action=${action}&ip_src=${ip_src}&ip_dst=${ip_dst}&port_src=${port_src}&port_dst=${port_dst}&protocol=${protocol}`).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				removeFilter(clase, ip_src, ip_dst, port_src, port_dst, protocol, action) {
+					return fetch(`packets.sh?do=D&class=${clase}&action=${action}&ip_src=${ip_src}&ip_dst=${ip_dst}&port_src=${port_src}&port_dst=${port_dst}&protocol=${protocol}`).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
 			};
 			
 			const searcher = new Searcher();
@@ -332,10 +381,10 @@
 			<nav>
 				<a href="#" class="selected" id="processes_a" onmouseover="show('processes')">Gestió de procéssos</a>
 				<a href="#" id="logs_a" onmouseover="show('logs')">Gestió de logs</a>
-				<a href="#" onclick="">Gestió de logs</a>
-				<a href="#" onclick="">Gestió d'usuaris</a>
-				<a href="#" onclick="">Filtrat de paquets</a>
 				<a href="#" id="tasks_a" onmouseover="show('tasks')">Programació de tasques</a>
+				<a href="#" id="music_a" onmouseover="show('music')">Gestió de música</a>
+				<a href="#" id="users_a" onmouseover="show('users')">Gestió d'usuaris</a>
+				<a href="#" id="paquets_a" onmouseover="show('paquets')">Filtrat de paquets</a>
 			</nav>
 			
 			<div>
@@ -453,19 +502,93 @@
 				  </tr>
 				</table>
 			</section>
+			
+			<section id="paquets" v-if="active">
+				<h1>Filtrat de paquets</h1>
+				
+				<table>
+				  <tr>
+					<th>Class</th>
+					<th>IP origen</th>
+					<th>IP destí</th>
+					<th>Port origen</th>
+					<th>Port destí</th>
+					<th>Protocol</th>
+					<th>Action</th>
+					<th></th>
+				  </tr>
+				  <template v-for="paquetss in paquets">
+					  <tr v-for="packet in paquetss.filters">
+						<td>{{paquetss.class}}</td>
+						<td>{{packet.ip_src}}</td>
+						<td>{{packet.ip_dst}}</td>
+						<td>{{packet.spt}}</td>
+						<td>{{packet.dpt}}</td>
+						<td>{{packet.protocol}}</td>
+						<td v-bind:class="{ accept: packet.action === 'ACCEPT', drop: packet.action === 'DROP' }">{{packet.action}}</td>
+						<td><button @click="remove(paquetss.class, packet)">x</button></td>
+					  </tr>
+				  </template>
+				  <tr>
+					<td>
+						<select v-model="filter_class">
+							<option value="INPUT">INPUT</option>
+							<option value="FORWARD">FORWARD</option>
+							<option value="OUTPUT">OUTPUT</option>
+						</select>
+					</td>
+					<td><input type="text" v-model="filter_ip_src" /></td>
+					<td><input type="text" v-model="filter_ip_dst" /></td>
+					<td><input type="text" v-if="filter_protocol === 'tcp' || filter_protocol === 'udp'" v-model="filter_port_src" /></td>
+					<td><input type="text" v-if="filter_protocol === 'tcp' || filter_protocol === 'udp'" v-model="filter_port_dst" /></td>
+					<td>
+						<select v-model="filter_protocol">
+							<option value="tcp">tcp</option>
+							<option value="udp">udp</option>
+							<option value="icmp">icmp</option>
+							<option value="all">all</option>
+						</select>
+					</td>
+					<td>
+						<select v-model="filter_action" v-bind:data-chosen="filter_action" >
+							<option value="ACCEPT">ACCEPT</option>
+							<option value="DROP">DROP</option>
+						</select>
+					</td>
+					<td><button @click="add()">+</button></td>
+				  </tr>
+				</table>
+			</section>
+			
+			<section id="users" v-if="active">
+				<h1>Gestió d'usuaris</h1>
+			</section>
+			
+			<section id="music" v-if="active">
+				<h1>Música</h1>
+			</section>
 		</main>
 		
 		<script>
 			let processes_a = document.getElementById('processes_a'),
-				tasks_a = document.getElementById('tasks_a');
-				logs_a = document.getElementById('logs_a');
+				logs_a = document.getElementById('logs_a'),
+				tasks_a = document.getElementById('tasks_a'),
+				music_a = document.getElementById('music_a'),
+				users_a = document.getElementById('users_a'),
+				paquets_a = document.getElementById('paquets_a');
 			function show(el) {
 				processes_app.setActive(false);
-				tasks_app.setActive(false);
 				logs_app.setActive(false);
+				tasks_app.setActive(false);
+				music_app.setActive(false);
+				users_app.setActive(false);
+				paquets_app.setActive(false);
 				processes_a.className = '';
-				tasks_a.className = '';
 				logs_a.className = '';
+				tasks_a.className = '';
+				music_a.className = '';
+				users_a.className = '';
+				paquets_a.className = '';
 				
 				eval(`${el}_app`).setActive(true);
 				eval(`${el}_a`).className = 'selected';
@@ -613,7 +736,17 @@
 					},
 					add: function() {
 						searcher.addTask(this.script_minute, this.script_hour, this.script_m_day, this.script_month, this.script_w_day, this.script_path).then((r)=>{
-								if (r.status === 200) this.load();
+								if (r.status === 200) {
+									this.load();
+									
+									// reset
+									this.script_path = '';
+									this.script_minute = '';
+									this.script_hour = '';
+									this.script_m_day = '';
+									this.script_month = '';
+									this.script_w_day = '';
+								}
 							});
 					},
 					remove: function(task) {
@@ -636,6 +769,76 @@
 				},
 				beforeMount() {
 					this.pathChanged();
+					this.load();
+				}
+			});
+			
+			var music_app = new Vue({
+				el: '#music',
+				data: {
+					active: false
+				},
+				methods: {
+					setActive: function(bool) {
+						this.active = bool;
+					}
+				},
+				beforeMount() {
+					
+				}
+			});
+			
+			var users_app = new Vue({
+				el: '#users',
+				data: {
+					active: false
+				},
+				methods: {
+					setActive: function(bool) {
+						this.active = bool;
+					}
+				},
+				beforeMount() {
+					
+				}
+			});
+			
+			var paquets_app = new Vue({
+				el: '#paquets',
+				data: {
+					active: false,
+					paquets: [],
+					
+					filter_class: 'INPUT',
+					filter_ip_src: '',
+					filter_ip_dst: '',
+					filter_port_src: '',
+					filter_port_dst: '',
+					filter_protocol: 'tcp',
+					filter_action: 'ACCEPT'
+				},
+				methods: {
+					setActive: function(bool) {
+						this.active = bool;
+					},
+					add: function() {
+						searcher.addFilter(this.filter_class, this.filter_ip_src, this.filter_ip_dst, this.filter_port_src, this.filter_port_dst, this.filter_protocol, this.filter_action).then((e)=>{
+							this.load();
+							
+							this.filter_ip_src = '';
+							this.filter_ip_dst = '';
+							this.filter_port_src = '';
+							this.filter_port_dst = '';
+						});
+					},
+					remove: function(clase, packet) {
+						searcher.removeFilter(clase, packet.ip_src, packet.ip_dst, packet.spt === undefined ? '' : packet.spt, packet.dpt === undefined ? '' : packet.dpt, packet.protocol, packet.action).then((e)=>this.load());
+					},
+					load: function() {
+						searcher.getFilters().then((r)=>this.paquets = r.filters);
+					}
+				},
+				beforeMount() {
 					this.load();
 				}
 			});
