@@ -620,7 +620,17 @@
 					},
 					add: function() {
 						searcher.addTask(this.script_minute, this.script_hour, this.script_m_day, this.script_month, this.script_w_day, this.script_path).then((r)=>{
-								if (r.status === 200) this.load();
+								if (r.status === 200) {
+									this.load();
+									
+									// reset
+									this.script_path = '';
+									this.script_minute = '';
+									this.script_hour = '';
+									this.script_m_day = '';
+									this.script_month = '';
+									this.script_w_day = '';
+								}
 							});
 					},
 					remove: function(task) {
