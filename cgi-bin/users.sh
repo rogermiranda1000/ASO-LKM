@@ -14,12 +14,12 @@ function getToken() {
 	echo -n "$1" | md5sum | awk '{ printf("%s", $1) }'
 }
 
-function getUser() {
+function getUserPassword() {
 	token=`echo "$HTTP_COOKIE" | grep -P -o '(?<=token=)[^;]+'` # token de login
 	cat "logins.txt" |
 		while read line; do
 			if [ `getToken "$line"` = "$token" ]; then
-				echo "$line" | awk '{ print $1 }'
+				echo "$line"
 				
 				return 0
 			fi
@@ -55,7 +55,7 @@ if [ "$REQUEST_METHOD" != "POST" ] || [ -z "${post_info[action]}" ]; then
 		echo "{\"users\":[${users::-1}]}"
 	fi
 else
-	user=`getUser`
+	read user password <<< `getUserPassword`
 	if [ `isSudoer "$user"` = "false" ] && [ "${post_info[action]}" != "add" ] && ([ "$user" != "${post_info[user]}" ] || [ "${post_info[action]}" == "set" ]); then
 		# si es vol editar un usuari o eliminar un usuari que no és ell mateix has de ser root
 		echo "Status: 401"
@@ -75,13 +75,21 @@ else
 			;;
 			
 		"remove" )
-			sudo userdel -r "${post_info[user]}"
+			sudo userdel -r "${post_info[user]}" >/dev/null
 			
 			logger -p local7.info "User $user removed ${post_info[user]}."
 			
+			curl http://localhost/logout.sh >/dev/null # logout
+			filtered_user=`echo "$user"` # todo
+			sudo sed -i "s/^$filtered_user .+//g" logins.txt
+			
+			is_self="false"
+			if [ "$user" = "${post_info[user]}" ]; then
+				is_self="true"
+			fi
 			echo "content-type: text/plain"
 			echo
-			echo "{\"msg\": \"deleted\"}"
+			echo "{\"msg\": \"deleted\",\"self\":$is_self}"
 			;;
 		
 		"set" )

@@ -917,8 +917,8 @@
 						searcher.removeUser(this.selected.username).then((r)=>{
 							if (r.status === 200) {
 								this.appendInfo('Usuari eliminat.');
-								this.load();
-								// TODO eliminar
+								if (r.self) logout();
+								else this.load();
 							}
 							else this.appendError(r.err);
 						});
