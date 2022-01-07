@@ -582,6 +582,10 @@
 								});
 							});
 				}
+				
+				listPlaylists() {
+					return fetch('music.sh').then(response => response.json());
+				}
 			};
 			
 			const searcher = new Searcher();
@@ -881,6 +885,23 @@
 			<section id="music" v-if="active">
 				<h1>Música</h1>
 				
+				<div v-if="stopped" >
+					&#9888; mpg123 desactivat &#9888;
+					<button @click="launch()">Reactivar</button>
+				</div>
+				
+				<div v-if="!stopped" >
+					<div>
+						<div v-for="playlist in playlists" v-bind:class="{ selected: selected === playlist}" @mouseover="selected = playlist">
+							{{playlist.playlist}}
+							<button @click="play()">></button>
+						</div>
+					</div>
+					<div v-if="selected !== null">
+						<span v-for="music in selected.files">{{music.path}}</span>
+					</div>
+				</div>
+				
 				<!-- popups -->
 				<div v-bind:class="i.style" v-for="i in info">
 					{{i.msg}}
@@ -1116,16 +1137,38 @@
 				data: {
 					active: false,
 					
+					playlists: [],
+					selected: null,
+					stopped: false,
+					
 					info: []
 				},
 				methods: {
 					setActive: function(bool) {
 						this.active = bool;
 					},
+					load: function() {
+						searcher.listPlaylists().then((r)=>{
+							if (r.stopped) this.stopped = true;
+							else {
+								this.playlists = r.playlists;
+								this.stopped = false;
+								
+								if (this.selected !== null) this.selected = this.playlists.filter(p => p.playlist === this.selected.playlist)[0];
+								if (this.selected === undefined) this.selected = null;
+							}
+						});
+					},
+					play: function() {
+						
+					},
+					launch: function() {
+						// TODO
+					},
 					...popup_functions
 				},
 				beforeMount() {
-					
+					this.load();
 				}
 			});
 			

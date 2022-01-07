@@ -14,7 +14,7 @@ if [ -z "${get_info[playlist]}" ] && [ -z "${get_info[song]}" ]; then
 		# music player online?
 		echo "content-type: text/plain"
 		echo
-		echo "{\"stopped\":\"true\"}"
+		echo "{\"stopped\":true}"
 		exit 1
 	fi
 	
@@ -38,9 +38,9 @@ if [ -z "${get_info[playlist]}" ] && [ -z "${get_info[song]}" ]; then
 	echo "content-type: text/plain"
 	echo
 	if [ -z "$content" ]; then
-		echo "{\"stopped\":\"false\",\"playlists\":[]}"
+		echo "{\"stopped\":false,\"playlists\":[]}"
 	else
-		echo "{\"stopped\":\"false\",\"playlists\":[${content::-1}]}"
+		echo "{\"stopped\":false,\"playlists\":[${content::-1}]}"
 	fi
 else
 	echo "Status: 401"
