@@ -29,16 +29,38 @@ function getUser() {
 
 token=`echo "$HTTP_COOKIE" | grep -P -o '(?<=token=)[^;]+'` # token de login
 user=`getUser "$token"`
-pid=`echo "$QUERY_STRING" | awk -F= '{print $2}'`
-if [ "$user" != '' ] && [ `isSudoer "$user"` == "1" ]; then
-	# the user is sudoer -> run kill always
-	sudo kill -9 "$pid"
-	echo "content-type: text/plain"
-	echo
-	echo "{\"result\":\"killed as sudo\"}"
-	logger -p local7.info "User $user running 'kill -9 $pid' as sudo..."
+
+declare -A get_info
+read tmp1 tmp2 <<< `echo "$QUERY_STRING" | cut -d "&" -f 1 | awk -F= '{ print $1 " " $2 }'`
+get_info["$tmp1"]="$tmp2"
+read tmp1 tmp2 <<< `echo "$QUERY_STRING" | cut -d "&" -f 2 | awk -F= '{ print $1 " " $2 }'`
+get_info["$tmp1"]="$tmp2"
+
+if [ `isSudoer "$user"` == "1" ]; then
+	if [ "{get_info[time]}" != '' ]; then
+		# stop
+		sudo kill -STOP "${get_info[pid]}" >/dev/null
+		
+		echo "content-type: text/plain"
+		echo
+		echo "{\"result\":\"stopped\"}"
+		
+		# s'ha de re-activar
+		(sleep "${get_info[time]}"; sudo kill -CONT "${get_info[pid]}") &
+		
+		logger -p local7.info "User $user stopping PID ${get_info[pid]}..."
+		
+	else
+		# the user is sudoer -> run kill always
+		sudo kill -9 "${get_info[pid]}" >/dev/null
+		echo "content-type: text/plain"
+		echo
+		echo "{\"result\":\"killed as sudo\"}"
+		logger -p local7.info "User $user running 'kill -9 ${get_info[pid]}' as sudo..."
+	fi
 else
-	if [ `./login.sh "$token" kill -9 "$pid" | grep -c 'Operation not permitted'` -eq 0 ]; then
+	# kill
+	if [ `./login.sh "$token" kill -9 "${get_info[pid]}" | grep -c 'Operation not permitted'` -eq 0 ]; then
 		echo "content-type: text/plain"
 		echo
 		echo "{\"result\":\"killed\"}"

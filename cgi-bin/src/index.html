@@ -177,6 +177,46 @@
 				top: 0;
 				background-color: #84D3FF;
 			}
+			
+			/* tooltip (https://www.w3schools.com/css/css_tooltip.asp) */
+			.tooltip {
+				position: relative;
+				display: inline-block;
+			}
+			
+			.tooltip::after {
+				content: "﹖";
+			}
+
+			.tooltip .tooltiptext {
+				visibility: hidden;
+				width: 200px;
+				background-color: black;
+				color: #fff;
+				text-align: center;
+				border-radius: 6px;
+				padding: 5px 0;
+				position: absolute;
+				z-index: 1;
+				top: 150%;
+				left: 50%;
+				margin-left: -100px;
+			}
+
+			.tooltip .tooltiptext::after {
+				content: "";
+				position: absolute;
+				bottom: 100%;
+				left: 50%;
+				margin-left: -5px;
+				border-width: 5px;
+				border-style: solid;
+				border-color: transparent transparent black transparent;
+			}
+
+			.tooltip:hover .tooltiptext {
+				visibility: visible;
+			}
 	
 			/* users CSS */
 			#users {
@@ -399,6 +439,14 @@
 							});
 				}
 				
+				stopProcess(pid, time) {
+					return fetch(`kill.sh?pid=${pid}&time=${time}`).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
 				getHints(path) {
 					return fetch(`search.sh?path=${path}`).then(response => {
 								return response.json().then(e => {
@@ -559,21 +607,37 @@
 					</div>
 				</div>
 				
+				Pausar durant: <input type="number" v-model="pause_time" /> segons
 				<table id="tableProcess">
 				  <tr>
 					<th v-bind:class="{ 'sorting-asc': sort_by === 'command' && !desc, 'sorting-desc': sort_by === 'command' && desc }" @click="setSort('command')">Nom</th>
 					<th v-bind:class="{ 'sorting-asc': sort_by === 'user' && !desc, 'sorting-desc': sort_by === 'user' && desc }" @click="setSort('user')">Usuari</th>
 					<th v-bind:class="{ 'sorting-asc': sort_by === 'pid' && !desc, 'sorting-desc': sort_by === 'pid' && desc }" @click="setSort('pid')">PID</th>
+					<th class="tooltip" v-bind:class="{ 'sorting-asc': sort_by === 'status' && !desc, 'sorting-desc': sort_by === 'status' && desc }" @click="setSort('status')">
+						Status
+						<span class="tooltiptext">
+							D = uninterruptible sleep<br/>
+							I = idle<br/>
+							R = running<br/>
+							S = sleeping<br/>
+							T = stopped by job control signal<br/>
+							t = stopped by debugger during trace<br/>
+							Z = zombie
+						</span>
+					</th>
 					<th v-bind:class="{ 'sorting-asc': sort_by === 'cpu' && !desc, 'sorting-desc': sort_by === 'cpu' && desc }" @click="setSort('cpu')">CPU</th>
 					<th v-bind:class="{ 'sorting-asc': sort_by === 'mem' && !desc, 'sorting-desc': sort_by === 'mem' && desc }" @click="setSort('mem')">RAM</th>
+					<th></th>
 					<th></th>
 				  </tr>
 				  <tr v-for="p in sortedProcesses">
 					<td>{{p.command}}</td>
 					<td>{{p.user}}</td>
 					<td>{{p.pid}}</td>
+					<td>{{p.status}}</td>
 					<td>{{Math.trunc(p.cpu*100)}}%</td>
 					<td>{{Math.trunc(p.mem*100)}}%</td>
+					<td><button @click="stop(p.pid)">||</button></td>
 					<td><button @click="kill(p.pid)">x</button></td>
 				  </tr>
 				</table>
@@ -789,6 +853,9 @@
 					uptime: '',
 					ram_usage: '',
 					disc_usage: '',
+					
+					
+					pause_time: '30',
 					processes: [],
 					sortedProcesses: [],
 					
@@ -811,6 +878,9 @@
 							if (e.status === 200) this.appendInfo(e.result);
 							else this.appendError(e.err);
 						});
+					},
+					stop: function(pid) {
+						searcher.stopProcess(pid, this.pause_time);
 					},
 					load: function() {
 						searcher.getProcesses().then((r)=>{
