@@ -12,7 +12,7 @@
 				font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 				--header-width: 300px;
 			}
-			.shadow , .error , .info , #tasks table {
+			.shadow , .error , .info , #tasks table , #userPanel , #users article:nth-child(2) form button , #users article:nth-child(2) form input , #userPanel div:nth-child(2) > button {
 				box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
 			}
 			body {
@@ -22,7 +22,7 @@
 				display: flex;
 				flex-direction: column;
 				justify-content: space-between;
-
+	
 				background-color: #B8E1FF;
 				position: absolute;
 				top: 0px;
@@ -37,7 +37,7 @@
 				padding: 40px 70px 70px 70px;
 				width: calc(100% - 440px);
 				height: calc(100% - 110px);
-
+	
 				display: flex;
 				flex-direction: row;
 			}
@@ -73,7 +73,7 @@
 			.info {
 				background-color: rgb(95, 175, 95);
 			}
-
+	
 			header > nav {
 				display: flex;
 				flex-direction: column;
@@ -99,7 +99,7 @@
 				color: white;
 				box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.705);
 			}
-
+	
 			h1 {
 				margin-bottom: 35px;
 				font-size: xx-large;
@@ -111,7 +111,7 @@
 			table {
 				border-spacing: 0px 0px;
 			}
-
+	
 			td , th {
 				padding: 6px 30px 6px 30px;
 			}
@@ -141,14 +141,14 @@
 			button[disabled] {
 				cursor: not-allowed;
 			}
-
+	
 			.horizontal {
 				display: flex;
 				flex-direction: row;
 				justify-content: space-between;
 			}
 			table button {
-				background-color: red;
+				background-color: rgb(238, 50, 50);
 				transition: background-color 0.3s;
 				color: white;
 				font-weight: bolder;
@@ -162,8 +162,8 @@
 			table button[disabled] {
 				background-color: gray;
 			}
-
-			#tableProcess , #tasks table , #paquets table{
+	
+			#tableProcess , #tasks table , #paquets table, #userPanel > div:nth-child(1){
 				overflow-y: scroll;
 				table-layout: fixed;
 				height: 70vh;
@@ -218,6 +218,104 @@
 				visibility: visible;
 			}
 	
+			/* users CSS */
+			#users {
+				width: 100%;
+			}
+			#users article:nth-child(1) {
+				width: 55%;
+			}
+			#users article:nth-child(2) {
+				width: 35%;
+			}
+			#users > div {
+				display: flex;
+				flex-direction: row;
+				justify-content: space-around;
+			}
+			#userPanel {
+				display: flex;
+				flex-direction: row;
+				background: #F8F8F8;
+			}
+			#userPanel div:nth-child(1) {
+				display: flex;
+				flex-direction: column;
+				width: 70%;
+			}
+			#userPanel div:nth-child(1) span {
+				padding: 10px;
+			}
+			#userPanel div:nth-child(1) span:nth-child(2n):not(.selected) {
+				background: #F8F8F8;
+			}
+			#userPanel div:nth-child(1) span:nth-child(2n - 1):not(.selected) {
+				background: #F1F1F1;
+			}
+			#userPanel div span.selected {
+				background-color: #8C8C8C;
+				color: white;
+				font-weight: bold;
+			}
+			#userPanel div:nth-child(2) {
+				width: 30%;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: start;
+				padding: 10px;
+			}
+			#userPanel div:nth-child(2) > div {
+				display: flex;
+				flex-direction: row;
+				justify-content: center;
+				transform: translate(-3px, 0);
+				margin: 22px;
+			}
+			#userPanel div:nth-child(2) > div * {
+				margin-right: 10px;
+			}
+			#userPanel div:nth-child(2) > button {
+				background-color: rgb(238, 50, 50);
+				padding: 4px 15px 4px 15px;
+				font-size: medium;
+				font-weight: bold;
+				border: none;
+				border-radius: 6px;
+			}
+	
+			#users article:nth-child(2) form {
+				display: flex;
+				flex-direction: column;
+			}
+			#users article:nth-child(2) form input {
+				width: 100%;
+				font-size: medium;
+				margin-bottom: 30px;
+				background: #F1F1F1;
+				border: none;
+				border-radius: 8px;
+				height: 42px;
+			}
+			#users article:nth-child(2) form button {
+				width: 50px;
+				height: 50px;
+				font-size: 30px;
+				border: none;
+				border-radius: 100px;
+				background-color: #030104;
+				color: white;
+				align-self: center;
+				margin-top: 15px;
+			}
+			#users article:nth-child(2) form button:hover {
+				background-color: rgb(63, 63, 63);
+			}
+			#users article:nth-child(2) form * {
+				padding: 3px;
+				margin-bottom: 10px;
+			}
+	
 			/* tasks CSS */
 			#tasks table, #tasks table tr:first-child > th {
 				width: 100%;
@@ -226,7 +324,7 @@
 				background-color: #F8F8F8;
 				height: 80vh;
 			}
-
+	
 			/* paquets CSS */
 			#paquets tr:first-child th {
 				padding: 22px;
@@ -240,7 +338,7 @@
 			#paquets select {
 				height: 25px;
 			}
-
+	
 			/* tasks CSS */
 			#tasks table, #tasks table tr:first-child > th {
 				width: 100%;
@@ -290,7 +388,7 @@
 			#processes table button:hover {
 				background-color: rgb(150, 26, 26);
 			}
-
+	
 			/* logs CSS */
 			textarea {
 				width: 50vw;
@@ -404,6 +502,56 @@
 								});
 							});
 				}
+				
+				getUsers() {
+					return fetch('users.sh').then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				addUser(username, password) {
+					return fetch('users.sh', {
+								method: 'POST',
+								headers: {
+								  'Content-Type': 'application/x-www-form-urlencoded'
+								},
+								body: `action=add&user=${username}&password=${password}`
+							}).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				removeUser(username) {
+					return fetch('users.sh', {
+								method: 'POST',
+								headers: {
+								  'Content-Type': 'application/x-www-form-urlencoded'
+								},
+								body: `action=remove&user=${username}`
+							}).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				setSudo(username, bool) {
+					return fetch('users.sh', {
+								method: 'POST',
+								headers: {
+								  'Content-Type': 'application/x-www-form-urlencoded'
+								},
+								body: `action=set&setter=superuser&user=${username}&setter_value=${bool ? 'true' : 'false'}`
+							}).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
 			};
 			
 			const searcher = new Searcher();
@@ -429,10 +577,10 @@
 			<nav>
 				<a href="#" class="selected" id="processes_a" onmouseover="show('processes')">Gestió de procéssos</a>
 				<a href="#" id="logs_a" onmouseover="show('logs')">Gestió de logs</a>
-				<a href="#" onclick="">Gestió d'usuaris</a>
-				<a href="#" id="paquets_a" onmouseover="show('paquets')">Filtrat de paquets</a>
 				<a href="#" id="tasks_a" onmouseover="show('tasks')">Programació de tasques</a>
-				<a href="#" id="music_a" onmouseover="show('music')">Music</a>
+				<a href="#" id="music_a" onmouseover="show('music')">Gestió de música</a>
+				<a href="#" id="users_a" onmouseover="show('users')">Gestió d'usuaris</a>
+				<a href="#" id="paquets_a" onmouseover="show('paquets')">Filtrat de paquets</a>
 			</nav>
 			
 			<div>
@@ -557,7 +705,7 @@
 					<td><input type="text" v-model="script_month" onkeypress="validateCron(event)" /></td>
 					<td><input type="text" v-model="script_w_day" onkeypress="validateCron(event)" /></td>
 					<td>
-						<input type="text" ref="script" v-model="script_path" @keypress="pathChanging()" list="files" />
+						<input type="text" ref="script" v-model="script_path" @keypress="pathChanging()" list="files" v-on:keydown.tab="interruptTab" />
 						<datalist id="files">
 							<option v-for="f in paths" v-bind:value="f.path" />
 						</datalist>
@@ -624,6 +772,48 @@
 				</table>
 			</section>
 			
+			<section id="users" v-if="active">
+				<h1>Gestió d'usuaris</h1>
+				<div>
+					<article>
+						<h3>Usuaris</h3>
+						
+						<div id="userPanel">
+							<div>
+								<span v-for="user in users" v-bind:class="{ selected: selected === user}" @mouseover="selected = user">{{user.username}}</span>
+							</div>
+							<div v-if="selected !== null">
+								<div>
+									<input type="checkbox" v-model="selected.superuser" @change="superuserChange()" />
+									Sudoer
+								</div>
+								<!-- altres divs... -->
+								<button @click="remove()">eliminar</button>
+							</div>
+						</div>
+					</article>
+					
+					<article>
+						<h3>Crear</h3>
+						
+						<form onsubmit="return false;"> <!-- method="post" enctype="application/x-www-form-urlencoded" -->
+							<label for="name">Nom</label>
+							<input type="text" id="name" v-model="username" />
+							<label for="password">Contrasenya</label>
+							<input type="password" id="password" v-model="password" />
+							<label for="check_password">Confirmar contrasenya</label>
+							<input type="password" id="check_password" v-model="check_password" />
+							<button @click="create()">+</button>
+						</form>
+					</article>
+				</div>
+				
+				<div v-bind:class="i.style" v-for="i in info">
+					{{i.msg}}
+					<button @click="discardVar(i.id)">x</button>
+				</div>
+			</section>
+			
 			<section id="music" v-if="active">
 				<h1>Música</h1>
 			</section>
@@ -631,21 +821,24 @@
 		
 		<script>
 			let processes_a = document.getElementById('processes_a'),
-				tasks_a = document.getElementById('tasks_a');
 				logs_a = document.getElementById('logs_a'),
-				paquets_a = document.getElementById('paquets_a'),
-				music_a = document.getElementById('music_a');
+				tasks_a = document.getElementById('tasks_a'),
+				music_a = document.getElementById('music_a'),
+				users_a = document.getElementById('users_a'),
+				paquets_a = document.getElementById('paquets_a');
 			function show(el) {
 				processes_app.setActive(false);
-				tasks_app.setActive(false);
 				logs_app.setActive(false);
-				paquets_app.setActive(false);
+				tasks_app.setActive(false);
 				music_app.setActive(false);
+				users_app.setActive(false);
+				paquets_app.setActive(false);
 				processes_a.className = '';
-				tasks_a.className = '';
 				logs_a.className = '';
-				paquets_a.className = '';
+				tasks_a.className = '';
 				music_a.className = '';
+				users_a.className = '';
+				paquets_a.className = '';
 				
 				eval(`${el}_app`).setActive(true);
 				eval(`${el}_a`).className = 'selected';
@@ -817,6 +1010,10 @@
 								if (r.status === 200) this.load();
 							});
 					},
+					interruptTab: function() {
+						this.$refs.script.focus();
+						event.preventDefault();
+					},
 					pathChanging: function() {
 						setTimeout(this.pathChanged, 1); // keypress encara no ha afegit la tecla a la variable
 					},
@@ -848,6 +1045,82 @@
 				},
 				beforeMount() {
 					
+				}
+			});
+			
+			var users_app = new Vue({
+				el: '#users',
+				data: {
+					active: false,
+					
+					username: '',
+					password: '',
+					check_password: '',
+					
+					users: [],
+					selected: null,
+					
+					info: []
+				},
+				methods: {
+					setActive: function(bool) {
+						this.active = bool;
+					},
+					create: function() {
+						if (this.password != this.check_password) this.appendError('Els passwords no coincideixen.');
+						else searcher.addUser(this.username, this.password).then((r)=>{
+							if (r.err === undefined) this.appendInfo('Usuari afegit.');
+							else this.appendError(r.err);
+						});
+					},
+					superuserChange: function() {
+						if (this.selected === null) return; // en principi mai hauria de passar
+						searcher.setSudo(this.selected.username, this.selected.superuser).then((r)=>{
+							if (r.status === 200) this.appendInfo('Permis cambiat.');
+							else this.appendError(r.err);
+							this.load();
+						});
+					},
+					remove: function() {
+						if (this.selected === null) return; // en principi mai hauria de passar
+						searcher.removeUser(this.selected.username).then((r)=>{
+							if (r.status === 200) {
+								this.appendInfo('Usuari eliminat.');
+								if (r.self) logout();
+								else this.load();
+							}
+							else this.appendError(r.err);
+						});
+					},
+					load: function() {
+						searcher.getUsers().then((r)=>{
+							this.users = r.users;
+							if (this.selected !== null) this.selected = this.users.filter(u => u.username === this.selected.username)[0];
+							if (this.selected === undefined) this.selected = null;
+						});
+					},
+					
+					/* popup functions */
+					appendVar(_msg, _style) {
+						let id = 0;
+						if (this.info.length > 0) id = this.info[this.info.length - 1].id + 1;
+						
+						this.info.push({id:id, msg:_msg, style:_style});
+						
+						setTimeout(()=>this.discardVar(id), 8000);
+					},
+					appendError: function(err) {
+						this.appendVar(err, 'error');
+					},
+					appendInfo: function(msg) {
+						this.appendVar(msg, 'info');
+					},
+					discardVar: function(id) {
+						this.info = this.info.filter(e => e.id !== id);
+					}
+				},
+				beforeMount() {
+					this.load();
 				}
 			});
 			
