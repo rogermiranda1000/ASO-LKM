@@ -578,12 +578,18 @@
 				});
 			}
 			
+			var active = null;
 			function stop() {
-				searcher.stop();
+				searcher.stop().then((r)=>{
+					if (r.status !== 200) active?.appendError(r.err);
+					// mai arribarà un codi 200 (el servidor s'aturarà abans d'enviar-lo)
+				});
 			}
 			
 			function reboot() {
-				searcher.reboot();
+				searcher.reboot().then((r)=>{
+					if (r.status !== 200) active?.appendError(r.err);
+				});
 			}
 			
 			function validateCron(e) {
@@ -666,6 +672,7 @@
 				  </tr>
 				</table>
 				
+				<!-- popups -->
 				<div v-bind:class="i.style" v-for="i in info">
 					{{i.msg}}
 					<button @click="discardVar(i.id)">x</button>
@@ -694,6 +701,12 @@
 						<h3>Logs</h3>
 						<textarea readonly ref="logs_text">{{logs}}</textarea>
 					</article>
+				</div>
+				
+				<!-- popups -->
+				<div v-bind:class="i.style" v-for="i in info">
+					{{i.msg}}
+					<button @click="discardVar(i.id)">x</button>
 				</div>
 			</section>
 			
@@ -737,6 +750,12 @@
 					<td><button @click="add()" :disabled='script_minute === "" || script_hour === "" || script_m_day === "" || script_month === "" || script_w_day === "" || script_path === ""'>+</button></td>
 				  </tr>
 				</table>
+				
+				<!-- popups -->
+				<div v-bind:class="i.style" v-for="i in info">
+					{{i.msg}}
+					<button @click="discardVar(i.id)">x</button>
+				</div>
 			</section>
 			
 			<section id="paquets" v-if="active">
@@ -794,6 +813,12 @@
 					<td><button @click="add()">+</button></td>
 				  </tr>
 				</table>
+				
+				<!-- popups -->
+				<div v-bind:class="i.style" v-for="i in info">
+					{{i.msg}}
+					<button @click="discardVar(i.id)">x</button>
+				</div>
 			</section>
 			
 			<section id="users" v-if="active">
@@ -832,6 +857,7 @@
 					</article>
 				</div>
 				
+				<!-- popups -->
 				<div v-bind:class="i.style" v-for="i in info">
 					{{i.msg}}
 					<button @click="discardVar(i.id)">x</button>
@@ -840,6 +866,12 @@
 			
 			<section id="music" v-if="active">
 				<h1>Música</h1>
+				
+				<!-- popups -->
+				<div v-bind:class="i.style" v-for="i in info">
+					{{i.msg}}
+					<button @click="discardVar(i.id)">x</button>
+				</div>
 			</section>
 		</main>
 		
@@ -864,10 +896,30 @@
 				users_a.className = '';
 				paquets_a.className = '';
 				
-				eval(`${el}_app`).setActive(true);
+				active = eval(`${el}_app`);
+				active.setActive(true);
 				eval(`${el}_a`).className = 'selected';
 			}
 			
+			var popup_functions = {
+				appendVar(_msg, _style) {
+					let id = 0;
+					if (this.info.length > 0) id = this.info[this.info.length - 1].id + 1;
+					
+					this.info.push({id:id, msg:_msg, style:_style});
+					
+					setTimeout(()=>this.discardVar(id), 8000);
+				},
+				appendError: function(err) {
+					this.appendVar(err, 'error');
+				},
+				appendInfo: function(msg) {
+					this.appendVar(msg, 'info');
+				},
+				discardVar: function(id) {
+					this.info = this.info.filter(e => e.id !== id);
+				}
+			};
 			var processes_app = new Vue({
 				el: '#processes',
 				data: {
@@ -940,25 +992,7 @@
 						else this.sort_by = criteria;
 						this.reloadSortedProcesses();
 					},
-					
-					/* popup functions */
-					appendVar(_msg, _style) {
-						let id = 0;
-						if (this.info.length > 0) id = this.info[this.info.length - 1].id + 1;
-						
-						this.info.push({id:id, msg:_msg, style:_style});
-						
-						setTimeout(()=>this.discardVar(id), 8000);
-					},
-					appendError: function(err) {
-						this.appendVar(err, 'error');
-					},
-					appendInfo: function(msg) {
-						this.appendVar(msg, 'info');
-					},
-					discardVar: function(id) {
-						this.info = this.info.filter(e => e.id !== id);
-					}
+					...popup_functions
 				},
 				beforeMount() {
 					this.load();
@@ -970,7 +1004,9 @@
 				data: {
 					active: false,
 					last: [],
-					logs: ''
+					logs: '',
+					
+					info: []
 				},
 				methods: {
 					setActive: function(bool) {
@@ -988,7 +1024,8 @@
 								this.setLogs(r.logs);
 							}
 						});
-					}
+					},
+					...popup_functions
 				},
 				beforeMount() {
 					this.load();
@@ -1008,7 +1045,9 @@
 					script_w_day: '',
 					
 					paths: [],
-					tasks: []
+					tasks: [],
+					
+					info: []
 				},
 				methods: {
 					setActive: function(bool) {
@@ -1049,7 +1088,8 @@
 					},
 					load: function() {
 						searcher.getTasks().then((e)=>this.tasks = e.tasks);
-					}
+					},
+					...popup_functions
 				},
 				beforeMount() {
 					this.pathChanged();
@@ -1060,12 +1100,15 @@
 			var music_app = new Vue({
 				el: '#music',
 				data: {
-					active: false
+					active: false,
+					
+					info: []
 				},
 				methods: {
 					setActive: function(bool) {
 						this.active = bool;
-					}
+					},
+					...popup_functions
 				},
 				beforeMount() {
 					
@@ -1123,25 +1166,7 @@
 							if (this.selected === undefined) this.selected = null;
 						});
 					},
-					
-					/* popup functions */
-					appendVar(_msg, _style) {
-						let id = 0;
-						if (this.info.length > 0) id = this.info[this.info.length - 1].id + 1;
-						
-						this.info.push({id:id, msg:_msg, style:_style});
-						
-						setTimeout(()=>this.discardVar(id), 8000);
-					},
-					appendError: function(err) {
-						this.appendVar(err, 'error');
-					},
-					appendInfo: function(msg) {
-						this.appendVar(msg, 'info');
-					},
-					discardVar: function(id) {
-						this.info = this.info.filter(e => e.id !== id);
-					}
+					...popup_functions
 				},
 				beforeMount() {
 					this.load();
@@ -1160,7 +1185,9 @@
 					filter_port_src: '',
 					filter_port_dst: '',
 					filter_protocol: 'tcp',
-					filter_action: 'ACCEPT'
+					filter_action: 'ACCEPT',
+					
+					info: []
 				},
 				methods: {
 					setActive: function(bool) {
@@ -1181,12 +1208,15 @@
 					},
 					load: function() {
 						searcher.getFilters().then((r)=>this.paquets = r.filters);
-					}
+					},
+					...popup_functions
 				},
 				beforeMount() {
 					this.load();
 				}
 			});
+			
+			show('processes');
 		</script>
 	</body>
 </html>
