@@ -1,16 +1,16 @@
 #!/bin/bash
 
-# playlist, song, action
+# playlist, song, action [-/open]
 declare -A get_info
 read tmp1 tmp2 <<< `echo "$QUERY_STRING" | cut -d "&" -f 1 | awk -F= '{ print $1 " " $2 }'`
 get_info["$tmp1"]="$tmp2"
 read tmp1 tmp2 <<< `echo "$QUERY_STRING" | cut -d "&" -f 2 | awk -F= '{ print $1 " " $2 }'`
 get_info["$tmp1"]="$tmp2"
 
-if [ -z "${get_info[playlist]}" ] && [ -z "${get_info[song]}" ]; then
+if [ -z "${get_info[playlist]}" ] && [ -z "${get_info[song]}" ] && [ -z "${get_info[action]}" ]; then
 	# list playlists
 	
-	if [ `ps aux | grep mpg123` -lt 2 ]; then
+	if [ `ps aux | grep -c mpg123` -lt 2 ]; then
 		# music player online?
 		echo "content-type: text/plain"
 		echo
@@ -43,8 +43,16 @@ if [ -z "${get_info[playlist]}" ] && [ -z "${get_info[song]}" ]; then
 		echo "{\"stopped\":false,\"playlists\":[${content::-1}]}"
 	fi
 else
-	echo "Status: 401"
-	echo "content-type: text/plain"
-	echo
-	echo "{\"err\":\"Operation not permitted\"}"
+	if [ "${get_info[action]}" = "open" ]; then
+		sudo sh -c 'mpg123 -R --fifo /var/www/cgi-bin/music >/dev/null &'
+		
+		echo "content-type: text/plain"
+		echo
+		echo "{\"msg\":\"ok\"}"
+	else
+		echo "Status: 401"
+		echo "content-type: text/plain"
+		echo
+		echo "{\"err\":\"Operation not permitted\"}"
+	fi
 fi

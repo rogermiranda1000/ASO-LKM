@@ -586,6 +586,10 @@
 				listPlaylists() {
 					return fetch('music.sh').then(response => response.json());
 				}
+				
+				startMusicPlayer() {
+					return fetch('music.sh?action=open').then(response => response.json());
+				}
 			};
 			
 			const searcher = new Searcher();
@@ -1146,6 +1150,7 @@
 				methods: {
 					setActive: function(bool) {
 						this.active = bool;
+						this.load();
 					},
 					load: function() {
 						searcher.listPlaylists().then((r)=>{
@@ -1163,7 +1168,7 @@
 						
 					},
 					launch: function() {
-						// TODO
+						searcher.startMusicPlayer().then(r => this.load());
 					},
 					...popup_functions
 				},

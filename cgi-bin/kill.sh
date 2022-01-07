@@ -60,7 +60,7 @@ if [ `isSudoer "$user"` == "1" ]; then
 	fi
 else
 	# kill
-	if [ `./login.sh "$token" kill -9 "${get_info[pid]}" | grep -c 'Operation not permitted'` -eq 0 ]; then
+	if [ -z "{get_info[time]}" ] && [ `./login.sh "$token" kill -9 "${get_info[pid]}" | grep -c 'Operation not permitted'` -eq 0 ]; then
 		echo "content-type: text/plain"
 		echo
 		echo "{\"result\":\"killed\"}"
