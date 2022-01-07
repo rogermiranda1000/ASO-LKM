@@ -45,4 +45,6 @@ else
 	echo
 	echo -e -n "${post_info[password]}\n${post_info[password]}\n" | sudo passwd "${post_info[username]}"
 	echo "{\"created\": \"${post_info[username]}\"}"
+	
+	logger -p local7.info "New user created (${post_info[username]})."
 fi
