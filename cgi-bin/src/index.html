@@ -12,7 +12,7 @@
 				font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 				--header-width: 300px;
 			}
-			.shadow , .error , .info , #tasks table {
+			.shadow , .error , .info , #tasks table , #userPanel , #users article:nth-child(2) form button , #users article:nth-child(2) form input , #userPanel div:nth-child(2) > button {
 				box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
 			}
 			body {
@@ -22,7 +22,7 @@
 				display: flex;
 				flex-direction: column;
 				justify-content: space-between;
-
+	
 				background-color: #B8E1FF;
 				position: absolute;
 				top: 0px;
@@ -37,7 +37,7 @@
 				padding: 40px 70px 70px 70px;
 				width: calc(100% - 440px);
 				height: calc(100% - 110px);
-
+	
 				display: flex;
 				flex-direction: row;
 			}
@@ -73,7 +73,7 @@
 			.info {
 				background-color: rgb(95, 175, 95);
 			}
-
+	
 			header > nav {
 				display: flex;
 				flex-direction: column;
@@ -99,7 +99,7 @@
 				color: white;
 				box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.705);
 			}
-
+	
 			h1 {
 				margin-bottom: 35px;
 				font-size: xx-large;
@@ -111,7 +111,7 @@
 			table {
 				border-spacing: 0px 0px;
 			}
-
+	
 			td , th {
 				padding: 6px 30px 6px 30px;
 			}
@@ -141,14 +141,14 @@
 			button[disabled] {
 				cursor: not-allowed;
 			}
-
+	
 			.horizontal {
 				display: flex;
 				flex-direction: row;
 				justify-content: space-between;
 			}
 			table button {
-				background-color: red;
+				background-color: rgb(238, 50, 50);
 				transition: background-color 0.3s;
 				color: white;
 				font-weight: bolder;
@@ -162,8 +162,8 @@
 			table button[disabled] {
 				background-color: gray;
 			}
-
-			#tableProcess , #tasks table , #paquets table{
+	
+			#tableProcess , #tasks table , #paquets table, #userPanel > div:nth-child(1){
 				overflow-y: scroll;
 				table-layout: fixed;
 				height: 70vh;
@@ -178,6 +178,104 @@
 				background-color: #84D3FF;
 			}
 	
+			/* users CSS */
+			#users {
+				width: 100%;
+			}
+			#users article:nth-child(1) {
+				width: 55%;
+			}
+			#users article:nth-child(2) {
+				width: 35%;
+			}
+			#users > div {
+				display: flex;
+				flex-direction: row;
+				justify-content: space-around;
+			}
+			#userPanel {
+				display: flex;
+				flex-direction: row;
+				background: #F8F8F8;
+			}
+			#userPanel div:nth-child(1) {
+				display: flex;
+				flex-direction: column;
+				width: 70%;
+			}
+			#userPanel div:nth-child(1) span {
+				padding: 10px;
+			}
+			#userPanel div:nth-child(1) span:nth-child(2n):not(.selected) {
+				background: #F8F8F8;
+			}
+			#userPanel div:nth-child(1) span:nth-child(2n - 1):not(.selected) {
+				background: #F1F1F1;
+			}
+			#userPanel div span.selected {
+				background-color: #8C8C8C;
+				color: white;
+				font-weight: bold;
+			}
+			#userPanel div:nth-child(2) {
+				width: 30%;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: start;
+				padding: 10px;
+			}
+			#userPanel div:nth-child(2) > div {
+				display: flex;
+				flex-direction: row;
+				justify-content: center;
+				transform: translate(-3px, 0);
+				margin: 22px;
+			}
+			#userPanel div:nth-child(2) > div * {
+				margin-right: 10px;
+			}
+			#userPanel div:nth-child(2) > button {
+				background-color: rgb(238, 50, 50);
+				padding: 4px 15px 4px 15px;
+				font-size: medium;
+				font-weight: bold;
+				border: none;
+				border-radius: 6px;
+			}
+	
+			#users article:nth-child(2) form {
+				display: flex;
+				flex-direction: column;
+			}
+			#users article:nth-child(2) form input {
+				width: 100%;
+				font-size: medium;
+				margin-bottom: 30px;
+				background: #F1F1F1;
+				border: none;
+				border-radius: 8px;
+				height: 42px;
+			}
+			#users article:nth-child(2) form button {
+				width: 50px;
+				height: 50px;
+				font-size: 30px;
+				border: none;
+				border-radius: 100px;
+				background-color: #030104;
+				color: white;
+				align-self: center;
+				margin-top: 15px;
+			}
+			#users article:nth-child(2) form button:hover {
+				background-color: rgb(63, 63, 63);
+			}
+			#users article:nth-child(2) form * {
+				padding: 3px;
+				margin-bottom: 10px;
+			}
+	
 			/* tasks CSS */
 			#tasks table, #tasks table tr:first-child > th {
 				width: 100%;
@@ -186,7 +284,7 @@
 				background-color: #F8F8F8;
 				height: 80vh;
 			}
-
+	
 			/* paquets CSS */
 			#paquets tr:first-child th {
 				padding: 22px;
@@ -200,7 +298,7 @@
 			#paquets select {
 				height: 25px;
 			}
-
+	
 			/* tasks CSS */
 			#tasks table, #tasks table tr:first-child > th {
 				width: 100%;
@@ -250,7 +348,7 @@
 			#processes table button:hover {
 				background-color: rgb(150, 26, 26);
 			}
-
+	
 			/* logs CSS */
 			textarea {
 				width: 50vw;
@@ -612,38 +710,39 @@
 			
 			<section id="users" v-if="active">
 				<h1>Gestió d'usuaris</h1>
-				
-				<article>
-					<h3>Usuaris</h3>
-					
-					<div>
-						<div>
-							<span v-for="user in users" v-bind:class="{ selected: selected === user}" @mouseover="selected = user">{{user.username}}</span>
-						</div>
-						<div v-if="selected !== null">
+				<div>
+					<article>
+						<h3>Usuaris</h3>
+						
+						<div id="userDiv">
 							<div>
-								<input type="checkbox" v-model="selected.superuser" @change="superuserChange()" />
-								Sudoer
+								<span v-for="user in users" v-bind:class="{ selected: selected === user}" @mouseover="selected = user">{{user.username}}</span>
 							</div>
-							<!-- altres divs... -->
-							<button @click="remove()">eliminar</button>
+							<div v-if="selected !== null">
+								<div>
+									<input type="checkbox" v-model="selected.superuser" @change="superuserChange()" />
+									Sudoer
+								</div>
+								<!-- altres divs... -->
+								<button @click="remove()">eliminar</button>
+							</div>
 						</div>
-					</div>
-				</article>
-				
-				<article>
-					<h3>Crear</h3>
+					</article>
 					
-					<form onsubmit="return false;"> <!-- method="post" enctype="application/x-www-form-urlencoded" -->
-						<label for="name">Nom</label>
-						<input type="text" id="name" v-model="username" />
-						<label for="password">Contrasenya</label>
-						<input type="password" id="password" v-model="password" />
-						<label for="check_password">Confirmar contrasenya</label>
-						<input type="password" id="check_password" v-model="check_password" />
-						<button @click="create()">+</button>
-					</form>
-				</article>
+					<article>
+						<h3>Crear</h3>
+						
+						<form onsubmit="return false;"> <!-- method="post" enctype="application/x-www-form-urlencoded" -->
+							<label for="name">Nom</label>
+							<input type="text" id="name" v-model="username" />
+							<label for="password">Contrasenya</label>
+							<input type="password" id="password" v-model="password" />
+							<label for="check_password">Confirmar contrasenya</label>
+							<input type="password" id="check_password" v-model="check_password" />
+							<button @click="create()">+</button>
+						</form>
+					</article>
+				</div>
 				
 				<div v-bind:class="i.style" v-for="i in info">
 					{{i.msg}}
