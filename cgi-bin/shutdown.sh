@@ -36,7 +36,7 @@ read tmp1 tmp2 <<< `echo "$QUERY_STRING" | cut -d "&" -f 1 | awk -F= '{ print $1
 get_info["$tmp1"]="$tmp2"
 
 if [ `isSudoer "$user"` == "1" ]; then
-	if [ "{get_info[restart]}" = "true" ]; then
+	if [ "${get_info[restart]}" = "true" ]; then
 		# restart
 		logger -p local7.info "User $user restarted the server."
 		
