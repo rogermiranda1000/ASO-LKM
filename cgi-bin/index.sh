@@ -1,7 +1,11 @@
 #!/bin/bash
 
 token=`echo "$HTTP_COOKIE" | grep -P -o '(?<=token=)[^;]+'` # token de login (si en té)
-./login.sh "$token"
+if [ -z "$token" ]; then
+	./login.sh
+else
+	./login.sh "$token"
+fi
 ret=$?
 if [ $ret -ne 0 ]; then
 	exit 0 # l'usuari ha de fer login; login.sh ja carrega la pàgina
