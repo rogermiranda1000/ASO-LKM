@@ -341,6 +341,14 @@
 							});
 				}
 				
+				stopProcess(pid, time) {
+					return fetch(`kill.sh?pid=${pid}&time=${time}`).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
 				getHints(path) {
 					return fetch(`search.sh?path=${path}`).then(response => {
 								return response.json().then(e => {
@@ -451,6 +459,7 @@
 					</div>
 				</div>
 				
+				Pausar durant: <input type="number" v-model="pause_time" /> segons
 				<table id="tableProcess">
 				  <tr>
 					<th v-bind:class="{ 'sorting-asc': sort_by === 'command' && !desc, 'sorting-desc': sort_by === 'command' && desc }" @click="setSort('command')">Nom</th>
@@ -471,6 +480,7 @@
 					<th v-bind:class="{ 'sorting-asc': sort_by === 'cpu' && !desc, 'sorting-desc': sort_by === 'cpu' && desc }" @click="setSort('cpu')">CPU</th>
 					<th v-bind:class="{ 'sorting-asc': sort_by === 'mem' && !desc, 'sorting-desc': sort_by === 'mem' && desc }" @click="setSort('mem')">RAM</th>
 					<th></th>
+					<th></th>
 				  </tr>
 				  <tr v-for="p in sortedProcesses">
 					<td>{{p.command}}</td>
@@ -479,6 +489,7 @@
 					<td>{{p.status}}</td>
 					<td>{{Math.trunc(p.cpu*100)}}%</td>
 					<td>{{Math.trunc(p.mem*100)}}%</td>
+					<td><button @click="stop(p.pid)">||</button></td>
 					<td><button @click="kill(p.pid)">x</button></td>
 				  </tr>
 				</table>
@@ -649,6 +660,9 @@
 					uptime: '',
 					ram_usage: '',
 					disc_usage: '',
+					
+					
+					pause_time: '30',
 					processes: [],
 					sortedProcesses: [],
 					
@@ -671,6 +685,9 @@
 							if (e.status === 200) this.appendInfo(e.result);
 							else this.appendError(e.err);
 						});
+					},
+					stop: function(pid) {
+						searcher.stopProcess(pid, this.pause_time);
 					},
 					load: function() {
 						searcher.getProcesses().then((r)=>{
