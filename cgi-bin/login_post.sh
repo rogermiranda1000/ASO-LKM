@@ -25,7 +25,7 @@ read tmp1 tmp2 <<< `echo "$post_data" | cut -d "&" -f 2 | awk -F= '{ print $1 " 
 post_info["$tmp1"]="$tmp2"
 
 login_file=`mktemp`
-echo "${post_info[password]}" | su -l "${post_info[username]}" >"$login_file"
+echo "${post_info[password]}" | su -l "${post_info[username]}" 1>/dev/null 2>"$login_file"
 if [ `grep -c "does not exist" "$login_file"` -gt 0 ]; then
 	echo "Status: 401"
 	echo "content-type: text/plain"
