@@ -45,7 +45,7 @@ if [ "$REQUEST_METHOD" != "POST" ] || [ -z "${post_info[action]}" ]; then
 	while read -r user; do
 		sudoer=`isSudoer "$user"`
 		users=`echo -n "$users{\"username\":\"$user\",\"superuser\":$sudoer},"`
-	done <<< `cut -f1 -d: /etc/passwd`
+	done <<< `cut -f1 -d: /etc/passwd | sort`
 	
 	echo "content-type: text/plain"
 	echo
