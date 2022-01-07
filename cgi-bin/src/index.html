@@ -552,6 +552,22 @@
 								});
 							});
 				}
+				
+				stop() {
+					return fetch('shutdown.sh').then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				reboot() {
+					return fetch('shutdown.sh?restart=true').then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
 			};
 			
 			const searcher = new Searcher();
@@ -559,6 +575,20 @@
 				searcher.logout().then((e)=>{
 					document.cookie = 'token='; // remove token
 					window.location = '/'; // ja s'ha fet logout, torna a la pàgina principal
+				});
+			}
+			
+			var active = null;
+			function stop() {
+				searcher.stop().then((r)=>{
+					if (r.status !== 200) active?.appendError(r.err);
+					// mai arribarà un codi 200 (el servidor s'aturarà abans d'enviar-lo)
+				});
+			}
+			
+			function reboot() {
+				searcher.reboot().then((r)=>{
+					if (r.status !== 200) active?.appendError(r.err);
 				});
 			}
 			
@@ -585,13 +615,13 @@
 			
 			<div>
 				<a id="logout" href="#" onclick="logout()">Logout</a>
-				<svg id="start" class="pointer" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 30.143 30.143" style="enable-background:new 0 0 30.143 30.143;" xml:space="preserve">
+				<svg id="start" onclick="stop()" class="pointer" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 30.143 30.143" style="enable-background:new 0 0 30.143 30.143;" xml:space="preserve">
 					<g>
 						<path style="fill:#030104;" d="M20.034,2.357v3.824c3.482,1.798,5.869,5.427,5.869,9.619c0,5.98-4.848,10.83-10.828,10.83   c-5.982,0-10.832-4.85-10.832-10.83c0-3.844,2.012-7.215,5.029-9.136V2.689C4.245,4.918,0.731,9.945,0.731,15.801   c0,7.921,6.42,14.342,14.34,14.342c7.924,0,14.342-6.421,14.342-14.342C29.412,9.624,25.501,4.379,20.034,2.357z"/>
 						<path style="fill:#030104;" d="M14.795,17.652c1.576,0,1.736-0.931,1.736-2.076V2.08c0-1.148-0.16-2.08-1.736-2.08   c-1.57,0-1.732,0.932-1.732,2.08v13.496C13.062,16.722,13.225,17.652,14.795,17.652z"/>
 					</g>
 				</svg>
-				<svg id="restart" class="pointer" xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.75 8a4.5 4.5 0 0 1-8.61 1.834l-1.391.565A6.001 6.001 0 0 0 14.25 8 6 6 0 0 0 3.5 4.334V2.5H2v4l.75.75h3.5v-1.5H4.352A4.5 4.5 0 0 1 12.75 8z"/></svg>
+				<svg id="restart" onclick="reboot()" class="pointer" xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.75 8a4.5 4.5 0 0 1-8.61 1.834l-1.391.565A6.001 6.001 0 0 0 14.25 8 6 6 0 0 0 3.5 4.334V2.5H2v4l.75.75h3.5v-1.5H4.352A4.5 4.5 0 0 1 12.75 8z"/></svg>
 			</div>
 		</header>
 		<main>
@@ -642,6 +672,7 @@
 				  </tr>
 				</table>
 				
+				<!-- popups -->
 				<div v-bind:class="i.style" v-for="i in info">
 					{{i.msg}}
 					<button @click="discardVar(i.id)">x</button>
@@ -670,6 +701,12 @@
 						<h3>Logs</h3>
 						<textarea readonly ref="logs_text">{{logs}}</textarea>
 					</article>
+				</div>
+				
+				<!-- popups -->
+				<div v-bind:class="i.style" v-for="i in info">
+					{{i.msg}}
+					<button @click="discardVar(i.id)">x</button>
 				</div>
 			</section>
 			
@@ -713,6 +750,12 @@
 					<td><button @click="add()" :disabled='script_minute === "" || script_hour === "" || script_m_day === "" || script_month === "" || script_w_day === "" || script_path === ""'>+</button></td>
 				  </tr>
 				</table>
+				
+				<!-- popups -->
+				<div v-bind:class="i.style" v-for="i in info">
+					{{i.msg}}
+					<button @click="discardVar(i.id)">x</button>
+				</div>
 			</section>
 			
 			<section id="paquets" v-if="active">
@@ -770,6 +813,12 @@
 					<td><button @click="add()">+</button></td>
 				  </tr>
 				</table>
+				
+				<!-- popups -->
+				<div v-bind:class="i.style" v-for="i in info">
+					{{i.msg}}
+					<button @click="discardVar(i.id)">x</button>
+				</div>
 			</section>
 			
 			<section id="users" v-if="active">
@@ -808,6 +857,7 @@
 					</article>
 				</div>
 				
+				<!-- popups -->
 				<div v-bind:class="i.style" v-for="i in info">
 					{{i.msg}}
 					<button @click="discardVar(i.id)">x</button>
@@ -816,6 +866,12 @@
 			
 			<section id="music" v-if="active">
 				<h1>Música</h1>
+				
+				<!-- popups -->
+				<div v-bind:class="i.style" v-for="i in info">
+					{{i.msg}}
+					<button @click="discardVar(i.id)">x</button>
+				</div>
 			</section>
 		</main>
 		
@@ -840,10 +896,30 @@
 				users_a.className = '';
 				paquets_a.className = '';
 				
-				eval(`${el}_app`).setActive(true);
+				active = eval(`${el}_app`);
+				active.setActive(true);
 				eval(`${el}_a`).className = 'selected';
 			}
 			
+			var popup_functions = {
+				appendVar(_msg, _style) {
+					let id = 0;
+					if (this.info.length > 0) id = this.info[this.info.length - 1].id + 1;
+					
+					this.info.push({id:id, msg:_msg, style:_style});
+					
+					setTimeout(()=>this.discardVar(id), 8000);
+				},
+				appendError: function(err) {
+					this.appendVar(err, 'error');
+				},
+				appendInfo: function(msg) {
+					this.appendVar(msg, 'info');
+				},
+				discardVar: function(id) {
+					this.info = this.info.filter(e => e.id !== id);
+				}
+			};
 			var processes_app = new Vue({
 				el: '#processes',
 				data: {
@@ -916,25 +992,7 @@
 						else this.sort_by = criteria;
 						this.reloadSortedProcesses();
 					},
-					
-					/* popup functions */
-					appendVar(_msg, _style) {
-						let id = 0;
-						if (this.info.length > 0) id = this.info[this.info.length - 1].id + 1;
-						
-						this.info.push({id:id, msg:_msg, style:_style});
-						
-						setTimeout(()=>this.discardVar(id), 8000);
-					},
-					appendError: function(err) {
-						this.appendVar(err, 'error');
-					},
-					appendInfo: function(msg) {
-						this.appendVar(msg, 'info');
-					},
-					discardVar: function(id) {
-						this.info = this.info.filter(e => e.id !== id);
-					}
+					...popup_functions
 				},
 				beforeMount() {
 					this.load();
@@ -946,7 +1004,9 @@
 				data: {
 					active: false,
 					last: [],
-					logs: ''
+					logs: '',
+					
+					info: []
 				},
 				methods: {
 					setActive: function(bool) {
@@ -964,7 +1024,8 @@
 								this.setLogs(r.logs);
 							}
 						});
-					}
+					},
+					...popup_functions
 				},
 				beforeMount() {
 					this.load();
@@ -984,7 +1045,9 @@
 					script_w_day: '',
 					
 					paths: [],
-					tasks: []
+					tasks: [],
+					
+					info: []
 				},
 				methods: {
 					setActive: function(bool) {
@@ -1025,7 +1088,8 @@
 					},
 					load: function() {
 						searcher.getTasks().then((e)=>this.tasks = e.tasks);
-					}
+					},
+					...popup_functions
 				},
 				beforeMount() {
 					this.pathChanged();
@@ -1036,12 +1100,15 @@
 			var music_app = new Vue({
 				el: '#music',
 				data: {
-					active: false
+					active: false,
+					
+					info: []
 				},
 				methods: {
 					setActive: function(bool) {
 						this.active = bool;
-					}
+					},
+					...popup_functions
 				},
 				beforeMount() {
 					
@@ -1099,25 +1166,7 @@
 							if (this.selected === undefined) this.selected = null;
 						});
 					},
-					
-					/* popup functions */
-					appendVar(_msg, _style) {
-						let id = 0;
-						if (this.info.length > 0) id = this.info[this.info.length - 1].id + 1;
-						
-						this.info.push({id:id, msg:_msg, style:_style});
-						
-						setTimeout(()=>this.discardVar(id), 8000);
-					},
-					appendError: function(err) {
-						this.appendVar(err, 'error');
-					},
-					appendInfo: function(msg) {
-						this.appendVar(msg, 'info');
-					},
-					discardVar: function(id) {
-						this.info = this.info.filter(e => e.id !== id);
-					}
+					...popup_functions
 				},
 				beforeMount() {
 					this.load();
@@ -1136,7 +1185,9 @@
 					filter_port_src: '',
 					filter_port_dst: '',
 					filter_protocol: 'tcp',
-					filter_action: 'ACCEPT'
+					filter_action: 'ACCEPT',
+					
+					info: []
 				},
 				methods: {
 					setActive: function(bool) {
@@ -1157,12 +1208,15 @@
 					},
 					load: function() {
 						searcher.getFilters().then((r)=>this.paquets = r.filters);
-					}
+					},
+					...popup_functions
 				},
 				beforeMount() {
 					this.load();
 				}
 			});
+			
+			show('processes');
 		</script>
 	</body>
 </html>
