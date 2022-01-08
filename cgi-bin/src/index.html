@@ -1156,7 +1156,7 @@
 						searcher.listPlaylists().then((r)=>{
 							if (r.stopped) this.stopped = true;
 							else {
-								this.playlists = r.playlists;
+								this.playlists = r.data.playlists;
 								this.stopped = false;
 								
 								if (this.selected !== null) this.selected = this.playlists.filter(p => p.playlist === this.selected.playlist)[0];
@@ -1168,7 +1168,7 @@
 						
 					},
 					launch: function() {
-						searcher.startMusicPlayer().then(r => this.load());
+						searcher.startMusicPlayer().then(r => setTimeout(this.load, 3000));
 					},
 					...popup_functions
 				},
