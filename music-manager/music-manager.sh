@@ -1,19 +1,24 @@
 #!/bin/bash
 
-read_pipe=`mktemp`
+write_pipe=`mktemp -u`
+read_pipe="/home/music-manager/mpg123_data"
 playlists="/home/music-manager/playlists" # todo music-manager user
 
 music_manager_solicitations="/home/music-manager/music_manager_solicitations"
 music_manager_info="/home/music-manager/music_manager_info"
 
+ps aux | grep mpg123 | awk '{ print $2 }' | xargs sudo kill -SIGINT $1 2>/dev/null # kill previous mpg123 (if any)
 sudo rm -f "$music_manager_solicitations" "$music_manager_info" "$read_pipe"
-trap "sudo rm -f $music_manager_solicitations $music_manager_info $read_pipe" EXIT # delete the named pipes on exit
+trap "ps aux | grep mpg123 | awk '{ print $2 }' | xargs sudo kill -SIGINT $1 2>/dev/null; sudo rm -f $music_manager_solicitations $music_manager_info $read_pipe" EXIT # delete the named pipes on exit
 
 touch "$music_manager_info"
 chmod 644 "$music_manager_info" # only I can edit; the others can read
 
+sudo touch "$read_pipe"
+sudo chmod 660 "$read_pipe"
+
 mkfifo -m 0622 "$music_manager_solicitations"
-mkfifo -m 0622 "$read_pipe"
+#mkfifo -m 0622 "$read_pipe"
 
 function getPlaylists() {
 	content=""
@@ -50,97 +55,62 @@ function updateContents() {
 # @param mpg123's line
 function getTime() {
 	case `echo "$1" | awk '{ print $1 }'` in
-		"@F" )
+		"@F")
 			# @F <frame> <remaining frames> <second> <remaining seconds>
 			time=`echo "$1" | awk '{ print $4 "/" ($4+$5) }'`
 			echo "New time: $time"
 			;;
 		
-		"@P" )
+		"@P")
 			status=`echo "$1" | awk '{ print $2 }'`
 			echo "New status: $status"
 			;;
 		
-		* )
-			if [ "${1:0:1}" = "@" ]; then
-				echo "Unknown: '$1'" # només comandes musicals
-			fi
+		*)
+			echo "Unknown: '$1'" # només comandes musicals
 			;;
 	esac
 }
 
-function closePlayers() {
-	while read -r players; do
-		sudo sh -c "echo 'q' > /proc/$players/fd/3" # quit
-		sudo kill -SIGINT "$players" 2>/dev/null
-	done <<< `ps aux | grep mpg123 | awk '{ print $2 }'`
-}
-
-pid=""
-closePlayers
+last_line=""
 updateContents
 while true; do
-	# music data
-	i=0
-	while false; do
-		#read -t 0.5 -s var < "$read_pipe"
-		#ret=$?
-		ret=1
+	# han matat el programa?
+	if [ `ps aux | grep -c mpg123` -lt 2 ]; then # ha de ser 2 perqué el grep ja conta com 1
+		logger -p local7.info "No s'ha trobat el programa mpg123, llençant-lo de nou..."
 		
-		if [ $ret -ne 0 ]; then
-			break
-		fi
-		
-		getTime "$var"
-		let "i++"
-		
-		if [ $i -gt 10 ]; then
-			break
-		fi
-	done
+		sudo sh -c "mpg123 -R --fifo $write_pipe >$read_pipe" & # llença el programa en paralel; el programa llegirà de 'write_pipe' i printarà info a 'read_pipe'
+	fi
 	
-	updateContents # actualitza el contingut
+	# music data
+	var=`sudo tail -n 1 "$read_pipe"`
+	if [ "$var" != "$last_line" ]; then
+		getTime "$var"
+	
+		updateContents # actualitza el contingut
+		
+		last_line="$var"
+	fi
 	
 	# user data
-	read -t 0.5 -s var < "$music_manager_solicitations" # read ya hace de sleep
-	ret=$?
+	read -st 2 var <> "$music_manager_solicitations"; ret=$? # read ya hace de sleep
 	if [ $ret -eq 0 ]; then
 		# han hablado
 		case `echo "$var" | awk '{ print $1 }'` in
-			"p" )
+			"p")
 				# play/pause
-				#sudo kill -SIGUSR1 "$pid"
-				sudo sh -c "echo '.' > /proc/$pid/fd/3"
-				;;
-				
-			"n" )
-				sudo sh -c "echo 'f' > /proc/$pid/fd/3"
-				;;
-				
-			"b" )
-				sudo sh -c "echo 'd' > /proc/$pid/fd/3"
+				sudo sh -c "echo 'p' > $write_pipe"
 				;;
 			
-			"l" )
+			"l")
 				# load playlist
-				closePlayers
-				playlist=`echo -n "$playlists/"; echo "$var.play" | awk '{ print $2 }'`
-				#sudo mpg123 -C --list "$playlist" --listentry 1 --continue &
-				sudo mpg123 -C /home/rogermiranda1000/songs/ARK-*.mp3 &
+				playlist=`echo "$var" | awk '{ print $2 }'`
+				sudo sh -c "echo 'loadlist 2 $playlists/$playlist.play' > $write_pipe"
 				
-				# get PID
-				try=0
-				pid=""
-				while [ -z "$pid" ] && [ $try -lt 10 ]; do
-					sleep 1
-					pid=`pidof mpg123`
-					let "try++"
-				done
-				
-				echo "loading playlist... PID=$pid"
+				logger -p local7.info "Reproduint playlist '$playlist'..."
 				;;
 			
-			* )
+			*)
 				echo "Unknown: '$var'"
 				;;
 		esac
