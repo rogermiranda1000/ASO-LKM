@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html><head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux manager</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <style>
+        /* general CSS */
+        * {
+            font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+            --header-width: 300px;
+        }
+        .shadow , .error , .info , #tasks table , #userPanel , #users article:nth-child(2) form button , #users article:nth-child(2) form input , #userPanel div:nth-child(2) > button , #processes > input , #music > div:nth-of-type(1) {
+            box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
+        }
+        body {
+            margin: 0px;
+        }
+        header {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+
+            background-color: #B8E1FF;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            height: calc(100%);
+            width: var(--header-width);
+        }
+        main {
+            position: absolute;
+            top: 0px;
+            left: 300px;
+            padding: 40px 70px 70px 70px;
+            width: calc(100% - 440px);
+            height: calc(100% - 110px);
+
+            display: flex;
+            flex-direction: row;
+        }
+        
+        .error , .info {
+            position: absolute;
+            bottom: 0px;
+            left: 50%;
+            bottom: 0%;
+            width: 65%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 25px;
+            font-weight: 500;
+            z-index: 10;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        .error:hover , .info:hover {
+            opacity: 1;
+        }
+        .error > button , .info > button {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background-color: transparent;
+            border: none;
+            z-index: 100;
+            font-size: large;
+        }
+        .error {
+            background-color: rgb(230, 89, 89);
+        }
+        
+        .info {
+            background-color: rgb(95, 175, 95);
+        }
+
+        header > nav {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-start;
+        }
+        header a {
+            text-decoration: none;
+            color: black;
+            text-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
+            font-size: large;
+            font-weight: 600;
+        }
+        header > nav > a {
+            width: 76%;
+            padding: 10% 12% 10% 12%;
+        }
+        header > div > a {
+            padding: 10% 0px 10% 12%;
+        }
+        .selected {
+            background-color: #20567c;
+            color: white;
+            box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.705);
+        }
+
+        h1 {
+            margin-bottom: 35px;
+            font-size: xx-large;
+        }
+        h3 {
+            margin-top: 35px;
+            font-size: large;
+        }
+        table {
+            border-spacing: 0px 0px;
+        }
+
+        td , th {
+            padding: 6px 30px 6px 30px;
+        }
+        tr:nth-child(2n) {
+            background: #F8F8F8;
+        }
+        tr:nth-child(2n - 1) {
+            background: #F1F1F1;
+        }
+        #start {
+            width: 40px;
+            height: 40px;
+            margin-left: 25px;
+        }
+        #restart {
+            width: 48px;
+            height: 48px;
+            margin-left: 25px;
+        }
+        header > div {
+            display: flex;
+            align-items: center;
+        }
+        .pointer:hover , button:hover {
+            cursor: pointer;
+        }
+        button[disabled] {
+            cursor: not-allowed;
+        }
+
+        .horizontal {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+        table button {
+            background-color: rgb(238, 50, 50);
+            transition: background-color 0.3s;
+            color: white;
+            font-weight: bolder;
+            font-size: large;
+            border: none;
+            border-radius: 100px;
+            box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
+            width: 28px;
+            height: 28px;
+        }
+        table button[disabled] {
+            background-color: gray;
+        }
+
+        #tableProcess , #tasks table , #paquets table, #userPanel > div:nth-child(1){
+            overflow-y: scroll;
+            table-layout: fixed;
+            height: 70vh;
+            display: block;
+        }
+        #processes, #tableProcess, #tableProcess tr:first-child > th {
+            width: 100%;
+        }
+        tr:first-child {
+            position: sticky;
+            top: 0;
+            background-color: #84D3FF;
+        }
+        
+        /* tooltip (https://www.w3schools.com/css/css_tooltip.asp) */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip::after {
+            content: "﹖";
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: black;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 0;
+            position: absolute;
+            z-index: 1;
+            top: 150%;
+            left: 50%;
+            margin-left: -100px;
+        }
+
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent transparent black transparent;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+        }
+
+        /* music CSS */
+        #music > div:nth-of-type(1) {
+            background-color: #F1F1F1;
+            display: flex;
+            flex-direction: row;
+            height: 60%;
+        }
+        #music > div:nth-of-type(1) > div {
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        #music > div:nth-of-type(1) > div > span , #music > div:nth-of-type(1) > div > div {
+            padding: 7px 20px;
+            margin: 5px;
+        }
+        #music > div:nth-of-type(1) > div > div > button {
+            border: none;
+            border-radius: 4px;
+            padding: 4px;
+            background-color: #000000;
+            color: white;
+            font-size: medium;
+            font-weight: bold;
+            width: 30px;
+            height: 30px;
+        }
+        #music > div:nth-of-type(1) > div:nth-child(1) {
+            background-color: #F1F1F1;
+        }
+        #music > div:nth-of-type(1) > div:nth-child(2) {
+            background-color: #F8F8F8;
+        }
+
+        /* users CSS */
+        #users {
+            width: 100%;
+        }
+        #users article:nth-child(1) {
+            width: 55%;
+        }
+        #users article:nth-child(2) {
+            width: 35%;
+        }
+        #users > div {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+        }
+        #userPanel {
+            display: flex;
+            flex-direction: row;
+            background: #F8F8F8;
+        }
+        #userPanel div:nth-child(1) {
+            display: flex;
+            flex-direction: column;
+            width: 70%;
+        }
+        #userPanel div:nth-child(1) span {
+            padding: 10px;
+        }
+        #userPanel div:nth-child(1) span:nth-child(2n):not(.selected) {
+            background: #F8F8F8;
+        }
+        #userPanel div:nth-child(1) span:nth-child(2n - 1):not(.selected) {
+            background: #F1F1F1;
+        }
+        #userPanel div span.selected {
+            background-color: #8C8C8C;
+            color: white;
+            font-weight: bold;
+        }
+        #userPanel div:nth-child(2) {
+            width: 30%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: start;
+            padding: 10px;
+        }
+        #userPanel div:nth-child(2) > div {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            transform: translate(-3px, 0);
+            margin: 22px;
+        }
+        #userPanel div:nth-child(2) > div * {
+            margin-right: 10px;
+        }
+        #userPanel div:nth-child(2) > button {
+            background-color: rgb(238, 50, 50);
+            padding: 4px 15px 4px 15px;
+            font-size: medium;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+        }
+
+        #users article:nth-child(2) form {
+            display: flex;
+            flex-direction: column;
+        }
+        #users article:nth-child(2) form input {
+            width: 100%;
+            font-size: medium;
+            margin-bottom: 30px;
+            background: #F1F1F1;
+            border: none;
+            border-radius: 8px;
+            height: 42px;
+        }
+        #users article:nth-child(2) form button {
+            width: 50px;
+            height: 50px;
+            font-size: 30px;
+            border: none;
+            border-radius: 100px;
+            background-color: #030104;
+            color: white;
+            align-self: center;
+            margin-top: 15px;
+        }
+        #users article:nth-child(2) form button:hover {
+            background-color: rgb(63, 63, 63);
+        }
+        #users article:nth-child(2) form * {
+            padding: 3px;
+            margin-bottom: 10px;
+        }
+
+        /* tasks CSS */
+        #tasks table, #tasks table tr:first-child > th {
+            width: 100%;
+        }
+        #tasks table , #paquets table{
+            background-color: #F8F8F8;
+            height: 80vh;
+        }
+
+        /* paquets CSS */
+        #paquets tr:first-child th {
+            padding: 22px;
+        }
+        .accept , option[value=ACCEPT] , select[data-chosen=ACCEPT] {
+            background-color: rgb(118, 206, 118);
+        }
+        .drop , option[value=DROP] , select[data-chosen=DROP] {
+            background-color: rgb(236, 96, 96);
+        }
+        #paquets select {
+            height: 25px;
+        }
+
+        /* tasks CSS */
+        #tasks table, #tasks table tr:first-child > th {
+            width: 100%;
+        }
+        #tasks table tr:last-child > td:first-child {
+            font-weight: bold;
+        }
+        #tasks table input {
+            width: 17vw;
+        }
+        #tasks table input:last-child {
+            width: 2vw;
+        }
+        
+        /* processes CSS */
+        .sorting-asc::after {
+            content: " [/\\]";
+        }
+        .sorting-desc::after {
+            content: " [v]";
+        }
+        #statsHead {
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        #statsHead > div:first-child {
+            background-color: #C5EAFF;
+            padding: 10px;
+        }
+        #statsHead > div:nth-child(2) {
+            display: flex;
+        }
+        #statsHead > div > div {
+            background-color: #84D3FF;
+            padding: 10px;
+            margin-left: 15px;
+        }
+        #statsHead div > span {
+            font-weight: 1000;
+        }
+        /*#tableProcess tr:first-child > th {
+            width: calc(70vh / 6);
+        }*/
+        #processes > input {
+            height: 28px;
+            width: 60px;
+            font-size: medium;
+            background-color: #F1F1F1;
+            border: none;
+        }
+        #tableProcess {
+            margin-top: 20px;
+        }
+        #tableProcess tr > td {
+            text-align: center;
+        }
+        #processes table button:hover {
+            background-color: rgb(150, 26, 26);
+        }
+
+        /* logs CSS */
+        textarea {
+            width: 50vw;
+            height: 33vh;
+            font-size: medium;
+            padding: 10px;
+            border: none;
+            background-color: #F1F1F1;
+        }
+        
+        #logs > div {
+            display: flex;
+        }
+        
+        #logs > div > article:first-child {
+            padding-right: 70px;
+        }
+    </style>
+    <script>
+        class Searcher {
+            constructor() {}
+
+            logout() {
+                return fetch('logout.sh');
+            }
+            
+            getProcesses() {
+                return fetch('processes.sh').then(response => {
+                            return response.json().then(e => {
+                                return {...e, status: response.status}
+                            });
+                        });
+            }
+            
+            getLogs() {
+                return fetch('logs.sh').then(response => {
+                            return response.json().then(e => {
+                                return {...e, status: response.status}
+                            });
+                        });
+            }
+            
+            killProcess(pid) {
+                return fetch(`kill.sh?pid=${pid}`).then(response => {
+                            return response.json().then(e => {
+                                return {...e, status: response.status}
+                            });
+                        });
+            }
+            
+            stopProcess(pid, time) {
+                return fetch(`kill.sh?pid=${pid}&time=${time}`).then(response => {
+                            return response.json().then(e => {
+                                return {...e, status: response.status}
+                            });
+                        });
+            }
+            
+            getHints(path) {
+                return fetch(`search.sh?path=${path}`).then(response => {
+                            return response.json().then(e => {
+                                return {...e, status: response.status}
+                            });
+                        });
+            }
+            
+            getTasks() {
+                return fetch('cron.sh').then(response => {
+                            return response.json().then(e => {
+                                return {...e, status: response.status}
+                            });
+                        });
+            }
+            
+            addTask(minute, hour, m_day, month, w_day, script) {
+                return fetch(`cron.sh?action=add&minute=${minute}&hour=${hour}&m_day=${m_day}&month=${month}&w_day=${w_day}&script=${encodeURIComponent(script)}`).then(response => {
+                            return response.json().then(e => {
+                                return {...e, status: response.status}
+                            });
+                        });
+            }
+            
+            removeTask(minute, hour, m_day, month, w_day, script, user) {
+                return fetch(`cron.sh?action=remove&minute=${minute}&hour=${hour}&m_day=${m_day}&month=${month}&w_day=${w_day}&script=${encodeURIComponent(script)}&user=${user}`).then(response => {
+                            return response.json().then(e => {
+                                return {...e, status: response.status}
+                            });
+                        });
+            }
+            
+            getFilters() {
+                return fetch('packets.sh').then(response => {
+                            return response.json().then(e => {
+                                return {...e, status: response.status}
+                            });
+                        });
+            }
+            
+            addFilter(clase, ip_src, ip_dst, port_src, port_dst, protocol, action) {
+                return fetch(`packets.sh?do=A&class=${clase}&action=${action}&ip_src=${ip_src}&ip_dst=${ip_dst}&port_src=${port_src}&port_dst=${port_dst}&protocol=${protocol}`).then(response => {
+                            return response.json().then(e => {
+                                return {...e, status: response.status}
+                            });
+                        });
+            }
+            
+            removeFilter(clase, ip_src, ip_dst, port_src, port_dst, protocol, action) {
+                return fetch(`packets.sh?do=D&class=${clase}&action=${action}&ip_src=${ip_src}&ip_dst=${ip_dst}&port_src=${port_src}&port_dst=${port_dst}&protocol=${protocol}`).then(response => {
+                            return response.json().then(e => {
+                                return {...e, status: response.status}
+                            });
+                        });
+            }
+            
+            getUsers() {
+                return fetch('users.sh').then(response => {
+                            return response.json().then(e => {
+                                return {...e, status: response.status}
+                            });
+                        });
+            }
+            
+            addUser(username, password) {
+                return fetch('users.sh', {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/x-www-form-urlencoded'
+                            },
+                            body: `action=add&user=${username}&password=${password}`
+                        }).then(response => {
+                            return response.json().then(e => {
+                                return {...e, status: response.status}
+                            });
+                        });
+            }
+            
+            removeUser(username) {
+                return fetch('users.sh', {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/x-www-form-urlencoded'
+                            },
+                            body: `action=remove&user=${username}`
+                        }).then(response => {
+                            return response.json().then(e => {
+                                return {...e, status: response.status}
+                            });
+                        });
+            }
+            
+            setSudo(username, bool) {
+                return fetch('users.sh', {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/x-www-form-urlencoded'
+                            },
+                            body: `action=set&setter=superuser&user=${username}&setter_value=${bool ? 'true' : 'false'}`
+                        }).then(response => {
+                            return response.json().then(e => {
+                                return {...e, status: response.status}
+                            });
+                        });
+            }
+            
+            stop() {
+                return fetch('shutdown.sh').then(response => {
+                            return response.json().then(e => {
+                                return {...e, status: response.status}
+                            });
+                        });
+            }
+            
+            reboot() {
+                return fetch('shutdown.sh?restart=true').then(response => {
+                            return response.json().then(e => {
+                                return {...e, status: response.status}
+                            });
+                        });
+            }
+            
+            listPlaylists() {
+                return fetch('music.sh').then(response => response.json());
+            }
+            
+            startMusicPlayer() {
+                return fetch('music.sh?action=open').then(response => response.json());
+            }
+            
+            tooglePlaySong() {
+                return fetch('music.sh?action=toggle').then(response => response.json());
+            }
+            
+            loadPlaylist(playlist) {
+                return fetch(`music.sh?action=load&playlist=${playlist}`).then(response => response.json());
+            }
+        };
+        
+        const searcher = new Searcher();
+        function logout() {
+            searcher.logout().then((e)=>{
+                document.cookie = 'token='; // remove token
+                window.location = '/'; // ja s'ha fet logout, torna a la pàgina principal
+            });
+        }
+        
+        var active = null;
+        function stop() {
+            searcher.stop().then((r)=>{
+                if (r.status !== 200) active?.appendError(r.err);
+                // mai arribarà un codi 200 (el servidor s'aturarà abans d'enviar-lo)
+            });
+        }
+        
+        function reboot() {
+            searcher.reboot().then((r)=>{
+                if (r.status !== 200) active?.appendError(r.err);
+            });
+        }
+        
+        function validateCron(e) {
+            var regex = /^[0-9/\-,*]+$/;
+            var str = String.fromCharCode(!e.charCode ? e.which : e.charCode);
+            if (regex.test(str)) return true;
+
+            e.preventDefault();
+            return false;
+        }
+    </script>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="#" class="" id="processes_a" onmouseover="show('processes')">Gestió de procéssos</a>
+            <a href="#" id="logs_a" onmouseover="show('logs')" class="">Gestió de logs</a>
+            <a href="#" id="tasks_a" onmouseover="show('tasks')" class="">Programació de tasques</a>
+            <a href="#" id="music_a" onmouseover="show('music')" class="selected">Gestió de música</a>
+            <a href="#" id="users_a" onmouseover="show('users')" class="">Gestió d'usuaris</a>
+            <a href="#" id="paquets_a" onmouseover="show('paquets')" class="">Filtrat de paquets</a>
+        </nav>
+        
+        <div>
+            <a id="logout" href="#" onclick="logout()">Logout</a>
+            <svg id="start" onclick="stop()" class="pointer" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 30.143 30.143" style="enable-background:new 0 0 30.143 30.143;" xml:space="preserve">
+                <g>
+                    <path style="fill:#030104;" d="M20.034,2.357v3.824c3.482,1.798,5.869,5.427,5.869,9.619c0,5.98-4.848,10.83-10.828,10.83   c-5.982,0-10.832-4.85-10.832-10.83c0-3.844,2.012-7.215,5.029-9.136V2.689C4.245,4.918,0.731,9.945,0.731,15.801   c0,7.921,6.42,14.342,14.34,14.342c7.924,0,14.342-6.421,14.342-14.342C29.412,9.624,25.501,4.379,20.034,2.357z"></path>
+                    <path style="fill:#030104;" d="M14.795,17.652c1.576,0,1.736-0.931,1.736-2.076V2.08c0-1.148-0.16-2.08-1.736-2.08   c-1.57,0-1.732,0.932-1.732,2.08v13.496C13.062,16.722,13.225,17.652,14.795,17.652z"></path>
+                </g>
+            </svg>
+            <svg id="restart" onclick="reboot()" class="pointer" xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.75 8a4.5 4.5 0 0 1-8.61 1.834l-1.391.565A6.001 6.001 0 0 0 14.25 8 6 6 0 0 0 3.5 4.334V2.5H2v4l.75.75h3.5v-1.5H4.352A4.5 4.5 0 0 1 12.75 8z"></path></svg>
+        </div>
+    </header>
+    <main>
+        <!---->
+        
+        <!---->
+        
+        <!---->
+        
+        <!---->
+        
+        <!---->
+        
+        <section id="music"><h1>Música</h1> <!----> <div><div><div class="selected">
+                        roger.play
+                        <button>&gt;</button></div></div> <div><span>/home/rogermiranda1000/songs/GetJinxed.mp3</span><span>/home/rogermiranda1000/songs/Minero.mp3</span><span>/home/rogermiranda1000/songs/Paradise.mp3</span></div></div> </section>
+    </main>
+    
+    <script>
+        let processes_a = document.getElementById('processes_a'),
+            logs_a = document.getElementById('logs_a'),
+            tasks_a = document.getElementById('tasks_a'),
+            music_a = document.getElementById('music_a'),
+            users_a = document.getElementById('users_a'),
+            paquets_a = document.getElementById('paquets_a');
+        function show(el) {
+            processes_app.setActive(false);
+            logs_app.setActive(false);
+            tasks_app.setActive(false);
+            music_app.setActive(false);
+            users_app.setActive(false);
+            paquets_app.setActive(false);
+            processes_a.className = '';
+            logs_a.className = '';
+            tasks_a.className = '';
+            music_a.className = '';
+            users_a.className = '';
+            paquets_a.className = '';
+            
+            active = eval(`${el}_app`);
+            active.setActive(true);
+            eval(`${el}_a`).className = 'selected';
+        }
+        
+        var popup_functions = {
+            appendVar(_msg, _style) {
+                let id = 0;
+                if (this.info.length > 0) id = this.info[this.info.length - 1].id + 1;
+                
+                this.info.push({id:id, msg:_msg, style:_style});
+                
+                setTimeout(()=>this.discardVar(id), 8000);
+            },
+            appendError: function(err) {
+                this.appendVar(err, 'error');
+            },
+            appendInfo: function(msg) {
+                this.appendVar(msg, 'info');
+            },
+            discardVar: function(id) {
+                this.info = this.info.filter(e => e.id !== id);
+            }
+        };
+        var processes_app = new Vue({
+            el: '#processes',
+            data: {
+                active: true,
+                reload: true,
+                
+                uptime: '',
+                ram_usage: '',
+                disc_usage: '',
+                
+                
+                pause_time: '30',
+                processes: [],
+                sortedProcesses: [],
+                
+                info: [],
+                
+                /* sort variables */
+                sort_by: 'user',
+                desc: false
+            },
+            methods: {
+                setActive: function(bool) {
+                    this.active = bool;
+                    if (bool) this.load();
+                },
+                cpu_usage: function() {
+                    return `${Math.trunc(this.processes.reduce((acum,curr)=>acum+curr.cpu, 0)*100)}%`;
+                },
+                kill: function(pid) {
+                    searcher.killProcess(pid).then((e)=>{
+                        if (e.status === 200) this.appendInfo(e.result);
+                        else this.appendError(e.err);
+                    });
+                },
+                stop: function(pid) {
+                    searcher.stopProcess(pid, this.pause_time);
+                },
+                load: function() {
+                    searcher.getProcesses().then((r)=>{
+                        if (r.status === 200) {
+                            this.uptime = r.uptime;
+                            this.ram_usage = `${Math.trunc(r.ram_usage*100)}%`
+                            this.disc_usage = `${Math.trunc(r.disc_usage*100)}%`;
+                            this.processes = r.processes;
+                            this.reloadSortedProcesses();
+                            
+                            if (this.reload && this.active) setTimeout(this.load, 1500); // torna a cridar en 2s
+                        }
+                    });
+                },
+                reloadChanged: function() {
+                    if (this.reload) this.load();
+                },
+                reloadSortedProcesses: function() {
+                    this.sortedProcesses =
+                        this.processes.sort((a,b)=>{
+                            if (this.desc) {
+                                if (a[this.sort_by] > b[this.sort_by]) return -1;
+                                return a[this.sort_by] < b[this.sort_by];
+                            }
+                            else {
+                                if (a[this.sort_by] < b[this.sort_by]) return -1;
+                                return a[this.sort_by] > b[this.sort_by];
+                            }
+                        });
+                },
+                setSort: function(criteria) {
+                    if (this.sort_by == criteria) this.desc = !this.desc; // s'ha clickat el mateix, fer el toggle
+                    else this.sort_by = criteria;
+                    this.reloadSortedProcesses();
+                },
+                ...popup_functions
+            },
+            beforeMount() {
+                this.load();
+            }
+        });
+        
+        var logs_app = new Vue({
+            el: '#logs',
+            data: {
+                active: false,
+                last: [],
+                logs: '',
+                
+                info: []
+            },
+            methods: {
+                setActive: function(bool) {
+                    this.active = bool;
+                    if (bool) this.load();
+                },
+                setLogs: function(txt) {
+                    this.logs = txt;
+                    if (this.$refs.logs_text !== undefined) this.$refs.logs_text.scrollTop = this.$refs.logs_text.scrollHeight;
+                },
+                load: function() {
+                    searcher.getLogs().then((r)=>{
+                        if (r.status === 200) {
+                            this.last = r.last;
+                            this.setLogs(r.logs);
+                        }
+                    });
+                },
+                ...popup_functions
+            },
+            beforeMount() {
+                this.load();
+            }
+        });
+        
+        var tasks_app = new Vue({
+            el: '#tasks',
+            data: {
+                active: false,
+                
+                script_path: '',
+                script_minute: '',
+                script_hour: '',
+                script_m_day: '',
+                script_month: '',
+                script_w_day: '',
+                
+                paths: [],
+                tasks: [],
+                
+                info: []
+            },
+            methods: {
+                setActive: function(bool) {
+                    this.active = bool;
+                },
+                add: function() {
+                    searcher.addTask(this.script_minute, this.script_hour, this.script_m_day, this.script_month, this.script_w_day, this.script_path).then((r)=>{
+                            if (r.status === 200) {
+                                this.load();
+                                
+                                // reset
+                                this.script_path = '';
+                                this.script_minute = '';
+                                this.script_hour = '';
+                                this.script_m_day = '';
+                                this.script_month = '';
+                                this.script_w_day = '';
+                            }
+                        });
+                },
+                remove: function(task) {
+                    searcher.removeTask(task.minute, task.hour, task.m_day, task.month, task.w_day, task.script, task.user).then((r)=>{
+                            if (r.status === 200) this.load();
+                        });
+                },
+                interruptTab: function() {
+                    this.$refs.script.focus();
+                    event.preventDefault();
+                },
+                pathChanging: function() {
+                    setTimeout(this.pathChanged, 1); // keypress encara no ha afegit la tecla a la variable
+                },
+                pathChanged: function() {
+                    searcher.getHints(this.script_path).then((e)=>{
+                        this.paths = e.results;
+                        if (this.$refs.script !== undefined) this.$refs.script.focus(); // si no datalist no es recarga
+                    });
+                },
+                load: function() {
+                    searcher.getTasks().then((e)=>this.tasks = e.tasks);
+                },
+                ...popup_functions
+            },
+            beforeMount() {
+                this.pathChanged();
+                this.load();
+            }
+        });
+        
+        var music_app = new Vue({
+            el: '#music',
+            data: {
+                active: false,
+                
+                playlists: [],
+                selected: null,
+                stopped: false,
+                
+                info: []
+            },
+            methods: {
+                setActive: function(bool) {
+                    this.active = bool;
+                    this.load();
+                },
+                load: function() {
+                    searcher.listPlaylists().then((r)=>{
+                        if (r.stopped) this.stopped = true;
+                        else {
+                            this.playlists = r.data.playlists;
+                            this.stopped = false;
+                            
+                            if (this.selected !== null) this.selected = this.playlists.filter(p => p.playlist === this.selected.playlist)[0];
+                            if (this.selected === undefined) this.selected = null;
+                        }
+                    });
+                },
+                play: function(playlist) {
+                    searcher.loadPlaylist(playlist).then(r => this.load());
+                },
+                launch: function() {
+                    searcher.startMusicPlayer().then(r => setTimeout(this.load, 3000));
+                },
+                ...popup_functions
+            },
+            beforeMount() {
+                this.load();
+            }
+        });
+        
+        var users_app = new Vue({
+            el: '#users',
+            data: {
+                active: false,
+                
+                username: '',
+                password: '',
+                check_password: '',
+                
+                users: [],
+                selected: null,
+                
+                info: []
+            },
+            methods: {
+                setActive: function(bool) {
+                    this.active = bool;
+                },
+                create: function() {
+                    if (this.password != this.check_password) this.appendError('Els passwords no coincideixen.');
+                    else searcher.addUser(this.username, this.password).then((r)=>{
+                        if (r.err === undefined) this.appendInfo('Usuari afegit.');
+                        else this.appendError(r.err);
+                    });
+                },
+                superuserChange: function() {
+                    if (this.selected === null) return; // en principi mai hauria de passar
+                    searcher.setSudo(this.selected.username, this.selected.superuser).then((r)=>{
+                        if (r.status === 200) this.appendInfo('Permis cambiat.');
+                        else this.appendError(r.err);
+                        this.load();
+                    });
+                },
+                remove: function() {
+                    if (this.selected === null) return; // en principi mai hauria de passar
+                    searcher.removeUser(this.selected.username).then((r)=>{
+                        if (r.status === 200) {
+                            this.appendInfo('Usuari eliminat.');
+                            if (r.self) logout();
+                            else this.load();
+                        }
+                        else this.appendError(r.err);
+                    });
+                },
+                load: function() {
+                    searcher.getUsers().then((r)=>{
+                        this.users = r.users;
+                        if (this.selected !== null) this.selected = this.users.filter(u => u.username === this.selected.username)[0];
+                        if (this.selected === undefined) this.selected = null;
+                    });
+                },
+                ...popup_functions
+            },
+            beforeMount() {
+                this.load();
+            }
+        });
+        
+        var paquets_app = new Vue({
+            el: '#paquets',
+            data: {
+                active: false,
+                paquets: [],
+                
+                filter_class: 'INPUT',
+                filter_ip_src: '',
+                filter_ip_dst: '',
+                filter_port_src: '',
+                filter_port_dst: '',
+                filter_protocol: 'tcp',
+                filter_action: 'ACCEPT',
+                
+                info: []
+            },
+            methods: {
+                setActive: function(bool) {
+                    this.active = bool;
+                },
+                add: function() {
+                    searcher.addFilter(this.filter_class, this.filter_ip_src, this.filter_ip_dst, this.filter_port_src, this.filter_port_dst, this.filter_protocol, this.filter_action).then((e)=>{
+                        this.load();
+                        
+                        this.filter_ip_src = '';
+                        this.filter_ip_dst = '';
+                        this.filter_port_src = '';
+                        this.filter_port_dst = '';
+                    });
+                },
+                remove: function(clase, packet) {
+                    searcher.removeFilter(clase, packet.ip_src, packet.ip_dst, packet.spt === undefined ? '' : packet.spt, packet.dpt === undefined ? '' : packet.dpt, packet.protocol, packet.action).then((e)=>this.load());
+                },
+                load: function() {
+                    searcher.getFilters().then((r)=>this.paquets = r.filters);
+                },
+                ...popup_functions
+            },
+            beforeMount() {
+                this.load();
+            }
+        });
+        
+        show('processes');
+    </script>
+
+</body></html>
