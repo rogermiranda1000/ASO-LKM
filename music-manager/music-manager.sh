@@ -1,19 +1,20 @@
 #!/bin/bash
 
-write_pipe=`mktemp`
 read_pipe=`mktemp`
 playlists="/home/music-manager/playlists" # todo music-manager user
 
 music_manager_solicitations="/home/music-manager/music_manager_solicitations"
 music_manager_info="/home/music-manager/music_manager_info"
 
+ps aux | grep mpg123 | awk '{ print $2 }' | xargs sudo kill -9 $1 2>/dev/null # kill previous mpg123 (if any)
+sudo rm -f "$music_manager_solicitations" "$music_manager_info" "$read_pipe"
+trap "sudo rm -f $music_manager_solicitations $music_manager_info $read_pipe" EXIT # delete the named pipes on exit
+
 touch "$music_manager_info"
 chmod 644 "$music_manager_info" # only I can edit; the others can read
 
 mkfifo -m 0622 "$music_manager_solicitations"
 mkfifo -m 0622 "$read_pipe"
-
-trap "rm $music_manager_solicitations $music_manager_info $write_pipe $read_pipe" EXIT # delete the named pipes on exit
 
 function getPlaylists() {
 	content=""
@@ -39,24 +40,70 @@ function getPlaylists() {
 	fi
 }
 
+time="0/0"
+status="0" # 0: stopped, 1: paused, 2: unpaused
 function updateContents() {
 	echo -n "{\"playlists\":" > "$music_manager_info"
 	getPlaylists >> "$music_manager_info"
-	echo "}" >> "$music_manager_info" # TODO add more
+	echo ",\"time\":\"$time\",\"status\":$status}" >> "$music_manager_info" # TODO add more
+}
+
+# @param mpg123's line
+function getTime() {
+	case `echo "$1" | awk '{ print $1 }'` in
+		"@F" )
+			# @F <frame> <remaining frames> <second> <remaining seconds>
+			time=`echo "$1" | awk '{ print $4 "/" ($4+$5) }'`
+			echo "New time: $time"
+			;;
+		
+		"@P" )
+			status=`echo "$1" | awk '{ print $2 }'`
+			echo "New status: $status"
+			;;
+		
+		* )
+			if [ "${1:0:1}" = "@" ]; then
+				echo "Unknown: '$1'" # només comandes musicals
+			fi
+			;;
+	esac
 }
 
 updateContents
-ps aux | grep mpg123 | awk '{ print $2 }' | xargs sudo kill -9 $1 2>/dev/null # kill previous mpg123 (if any)
 while true; do
 	# han matat el programa?
 	if [ `ps aux | grep -c mpg123` -lt 2 ]; then # ha de ser 2 perqué el grep ja conta com 1
 		logger -p local7.info "No s'ha trobat el programa mpg123, llençant-lo de nou..."
-		sudo sh -c "mpg123 -R --fifo $write_pipe > $read_pipe &"
+		
+		sudo sh -c "mpg123 -R --fifo $write_pipe &" # llença el programa en paralel; el programa llegirà de 'write_pipe' i printarà info a 'read_pipe'
 	fi
 	
-	read -t 5 var < "$music_manager_solicitations" # read ya hace de sleep
+	# music data
+	i=0
+	while true; do
+		#read -t 0.5 -s var < "$read_pipe"
+		#ret=$?
+		ret=1
+		
+		if [ $ret -ne 0 ]; then
+			break
+		fi
+		
+		getTime "$var"
+		let "i++"
+		
+		if [ $i -gt 10 ]; then
+			break
+		fi
+	done
+	
+	updateContents # actualitza el contingut
+	
+	# user data
+	read -t 0.5 -s var < "$music_manager_solicitations" # read ya hace de sleep
 	ret=$?
-	if [ $? -eq 0 ]; then
+	if [ $ret -eq 0 ]; then
 		# han hablado
 		case `echo "$var" | awk '{ print $1 }'` in
 			"p" )
@@ -66,12 +113,13 @@ while true; do
 			
 			"l" )
 				# load playlist
-				msg=`echo -n "loadlist 1 $playlists/"; echo "$var" | awk '{ print $2 }'`
+				msg=`echo -n "loadlist 3 $playlists/"; echo "$var" | awk '{ print $2 }'`
 				sudo sh -c "echo $msg > $write_pipe"
 				;;
 			
-			*)
-				echo "$var"
+			* )
+				echo "Unknown: '$var'"
+				;;
 		esac
 	fi
 done
