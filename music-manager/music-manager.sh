@@ -52,18 +52,38 @@ function updateContents() {
 	echo ",\"time\":\"$time\",\"status\":$status}" >> "$music_manager_info" # TODO add more
 }
 
+playlist_path=""
+song_number="0"
+current_song="0"
+function loadPlaylist() {
+	playlist_path="$playlists/$1.play"
+	song_number=`wc -l "$playlist_path" | awk '{ print $1 }'`
+	current_song="0"
+	
+	logger -p local7.info "Reproduint playlist '$1'..."
+}
+
+function updatePlaylist() {
+	let "current_song++"
+	if [ "$current_song" -le "$song_number" ]; then
+		sudo sh -c "echo 'loadlist $current_song $playlist_path' > $write_pipe"
+	fi
+}
+
 # @param mpg123's line
 function getTime() {
 	case `echo "$1" | awk '{ print $1 }'` in
 		"@F")
 			# @F <frame> <remaining frames> <second> <remaining seconds>
 			time=`echo "$1" | awk '{ print $4 "/" ($4+$5) }'`
-			echo "New time: $time"
+			status="2" # running
 			;;
 		
 		"@P")
 			status=`echo "$1" | awk '{ print $2 }'`
-			echo "New status: $status"
+			if [ "$status" -eq 0 ]; then
+				updatePlaylist # if there's more songs, play them
+			fi
 			;;
 		
 		*)
@@ -100,14 +120,14 @@ while true; do
 			"p")
 				# play/pause
 				sudo sh -c "echo 'p' > $write_pipe"
+				
+				logger -p local7.info "Canço pausada/reanudada."
 				;;
 			
 			"l")
 				# load playlist
-				playlist=`echo "$var" | awk '{ print $2 }'`
-				sudo sh -c "echo 'loadlist 2 $playlists/$playlist.play' > $write_pipe"
-				
-				logger -p local7.info "Reproduint playlist '$playlist'..."
+				loadPlaylist `echo "$var" | awk '{ print $2 }'`
+				updatePlaylist
 				;;
 			
 			*)
