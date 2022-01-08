@@ -590,6 +590,14 @@
 				startMusicPlayer() {
 					return fetch('music.sh?action=open').then(response => response.json());
 				}
+				
+				tooglePlaySong() {
+					return fetch('music.sh?action=toggle').then(response => response.json());
+				}
+				
+				loadPlaylist(playlist) {
+					return fetch(`music.sh?action=load&playlist=${playlist}`).then(response => response.json());
+				}
 			};
 			
 			const searcher = new Searcher();
@@ -898,7 +906,7 @@
 					<div>
 						<div v-for="playlist in playlists" v-bind:class="{ selected: selected === playlist}" @mouseover="selected = playlist">
 							{{playlist.playlist}}
-							<button @click="play()">></button>
+							<button @click="play(playlist.playlist)">></button>
 						</div>
 					</div>
 					<div v-if="selected !== null">
@@ -1164,8 +1172,8 @@
 							}
 						});
 					},
-					play: function() {
-						
+					play: function(playlist) {
+						searcher.loadPlaylist(playlist).then(r => this.load());
 					},
 					launch: function() {
 						searcher.startMusicPlayer().then(r => setTimeout(this.load, 3000));
