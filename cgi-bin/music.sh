@@ -3,7 +3,7 @@
 music_manager_solicitations="/home/music-manager/music_manager_solicitations"
 music_manager_info="/home/music-manager/music_manager_info"
 
-# playlist, song, action [-/open/load/toggle/next/back/add]
+# playlist, song, action [-/open/load/play/stop/next/back/add/loop]
 declare -A get_info
 read tmp1 tmp2 <<< `echo "$QUERY_STRING" | cut -d "&" -f 1 | awk -F= '{ print $1 " " $2 }'`
 get_info["$tmp1"]="$tmp2"
@@ -34,8 +34,11 @@ else
 		"load" )
 			echo "l ${get_info[playlist]}" > "$music_manager_solicitations"
 			;;
-		"toggle" )
+		"play" )
 			echo "p" > "$music_manager_solicitations"
+			;;
+		"stop" )
+			echo "s" > "$music_manager_solicitations"
 			;;
 		"next" )
 			echo "n" > "$music_manager_solicitations"
@@ -45,6 +48,9 @@ else
 			;;
 		"add")
 			echo "a ${get_info[playlist]} ${get_info[song]}" > "$music_manager_solicitations"
+			;;
+		"loop")
+			echo "w" > "$music_manager_solicitations"
 			;;
 		*)
 			echo "Status: 400"

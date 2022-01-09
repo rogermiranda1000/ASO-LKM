@@ -47,6 +47,7 @@ function getPlaylists() {
 playlist_path=""
 song_number=0
 current_song=0
+loop=0
 function loadPlaylist() {
 	tmp=`wc -l "$playlist_path" | awk '{ print $1 }'`
 	if [ "$tmp" -eq 0 ]; then
@@ -62,7 +63,12 @@ function loadPlaylist() {
 }
 
 function updatePlaylist() {
-	let "current_song++"
+	if [ "$loop" -eq 0 ]; then
+		let "current_song++"
+	elif [ "$current_song" -eq 0 ]; then
+		current_song=1
+	fi
+	
 	if [ "$current_song" -gt 0 ] && [ "$current_song" -le "$song_number" ]; then
 		sudo sh -c "echo 'loadlist $current_song $playlist_path' > $write_pipe"
 	fi
@@ -83,7 +89,7 @@ function updateContents() {
 	song=`getCurrentSongPlaying`
 	echo -n "{\"playlists\":" > "$music_manager_info"
 	getPlaylists >> "$music_manager_info"
-	echo ",\"time\":\"$time\",\"status\":$status,\"song\":$song}" >> "$music_manager_info" # TODO add more
+	echo ",\"time\":\"$time\",\"status\":$status,\"song\":$song,\"loop\":$loop}" >> "$music_manager_info" # TODO add more
 }
 
 # @param mpg123's line
@@ -134,10 +140,23 @@ while true; do
 		# han hablado
 		case `echo "$var" | awk '{ print $1 }'` in
 			"p")
-				# play/pause
-				sudo sh -c "echo 'p' > $write_pipe"
+				# play
+				if [ "$status" -eq 1 ]; then
+					# paused -> play
+					sudo sh -c "echo 'p' > $write_pipe"
+					
+					logger -p local7.info "Canço reanudada."
+				fi
+				;;
 				
-				logger -p local7.info "Canço pausada/reanudada."
+			"s")
+				# stop
+				if [ "$status" -eq 2 ]; then
+					# playing -> stop
+					sudo sh -c "echo 'p' > $write_pipe"
+					
+					logger -p local7.info "Canço aturada."
+				fi
 				;;
 			
 			"l")
@@ -160,10 +179,20 @@ while true; do
 			"b")
 				# previous song in playlist
 				if [ "$current_song" -gt 1 ]; then
-					let "current_song-=2" # current_song--
+					if [ "$loop" -eq 0 ]; then
+						let "current_song-=2" # current_song--
+					fi # si no, reproduir la mateixa
 					updatePlaylist
 					
 					logger -p local7.info "Canço retrocedida."
+				fi
+				;;
+				
+			"w")
+				if [ "$loop" -eq 0 ]; then
+					loop=1
+				else
+					loop=0
 				fi
 				;;
 				
