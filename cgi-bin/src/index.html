@@ -223,6 +223,22 @@
 			}
 	
 			/* music CSS */
+			#stoppedMusic {
+				padding: 10px 30px;
+				color: red;
+				font-weight: bold;
+				width: fit-content;
+			}
+			#stoppedMusic > {
+				margin: 10px;
+			}
+			#stoppedMusic > button {
+				margin: 10px;
+				padding: 8px 12px;
+				border-radius: 20px;
+				font-size: medium;
+			}
+
 			#music {
 				display: flex;
 				flex-direction: column;
@@ -242,28 +258,26 @@
 	
 			#music-controller > svg {
 				height: 60px;
-				transition: color 0.1s , filter 0.1s , transform 0.09s;
+				transition: filter 0.1s , transform 0.09s;
 			}
 			#music-controller > svg.pressed {
 				filter: drop-shadow(2px 3px 2px rgba(0, 0, 0, 0.267));
+				cursor: default;
 			}
 			#music-controller > svg.pressed > path {
 				fill: rgb(73, 231, 223);
 			}
-			#music-controller > svg.pressed:active > path {
-				fill: rgb(177, 255, 251);
-			}
 			#music-controller > svg > path {
 				transition: fill 0.15s;
 			}
-			#music-controller > svg:hover {
+			#music-controller > svg:hover:not(.pressed) {
 				filter: drop-shadow(2px 8px 2px rgb(0 0 0 / 0.4));
 				transform: scale(1.07);
 			}
 			#music-controller > svg:hover:not(.pressed) > path {
 				fill: rgb(11, 82, 104);
 			}
-			#music-controller > svg:active {
+			#music-controller > svg:active:not(.pressed) {
 				filter: drop-shadow(1px 3px 1px rgb(0 0 0 / 0.6));
 				transform: scale(0.9);
 			}
@@ -274,7 +288,7 @@
 			#music-controller > svg:nth-of-type(4) {
 				margin-right: 50px;
 			}
-			#music > div:nth-of-type(1) {
+			#music > div:nth-of-type(1):not(#stoppedMusic) {
 				background-color: #F1F1F1;
 				display: flex;
 				flex-direction: row;
@@ -1007,7 +1021,7 @@
 			<section id="music" v-if="active">
 				<h1>Música</h1>
 				
-				<div v-if="stopped">
+				<div id="stoppedMusic" v-if="stopped">
 					&#9888; music-manager desactivat &#9888;
 					<button @click="launch()">Reactivar</button>
 				</div>
