@@ -12,7 +12,7 @@
 				font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 				--header-width: 300px;
 			}
-			.shadow , .error , .info , #tasks table , #userPanel , #users article:nth-child(2) form button , #users article:nth-child(2) form input , #userPanel div:nth-child(2) > button , #processes > input , #music > div:nth-of-type(1) , #music-controller {
+			.shadow , .error , .info , #tasks table , #userPanel , #users article:nth-child(2) form button , #users article:nth-child(2) form input , #userPanel div:nth-child(2) > button , #processes > input , #music > div:nth-of-type(1) , #music-controller , #stoppedMusic > button{
 				box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
 			}
 			body {
@@ -223,6 +223,22 @@
 			}
 	
 			/* music CSS */
+			#music progress {
+				width: 60%;
+				height: 25px;
+			}
+			#music > div:nth-of-type(2) {
+				font-size: medium;
+				margin: 30px 15px 15px 15px;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+			}
+			#music > div:nth-of-type(1) > div:nth-of-type(2) input {
+				margin: 10px;
+				width: 80%;
+			}
 			#stoppedMusic {
 				padding: 10px 30px;
 				color: red;
@@ -234,8 +250,10 @@
 			}
 			#stoppedMusic > button {
 				margin: 10px;
-				padding: 8px 12px;
+				padding: 12px 18px;
 				border-radius: 20px;
+				border: none;
+				background-color: #F1F1F1;
 				font-size: medium;
 			}
 
@@ -249,7 +267,7 @@
 				justify-content: space-around;
 				width: 450px;
 				padding: 20px 50px 20px 28px;
-				margin: 55px;
+				margin: 15px 35px 35px 35px;
 				align-self: center;
 				background-color: #d4f0ff;
 				border-radius: 40px;
@@ -262,7 +280,6 @@
 			}
 			#music-controller > svg.pressed {
 				filter: drop-shadow(2px 3px 2px rgba(0, 0, 0, 0.267));
-				cursor: default;
 			}
 			#music-controller > svg.pressed > path {
 				fill: rgb(73, 231, 223);
@@ -270,14 +287,14 @@
 			#music-controller > svg > path {
 				transition: fill 0.15s;
 			}
-			#music-controller > svg:hover:not(.pressed) {
+			#music-controller > svg:hover {
 				filter: drop-shadow(2px 8px 2px rgb(0 0 0 / 0.4));
 				transform: scale(1.07);
 			}
 			#music-controller > svg:hover:not(.pressed) > path {
 				fill: rgb(11, 82, 104);
 			}
-			#music-controller > svg:active:not(.pressed) {
+			#music-controller > svg:active {
 				filter: drop-shadow(1px 3px 1px rgb(0 0 0 / 0.6));
 				transform: scale(0.9);
 			}
@@ -320,6 +337,9 @@
 			}
 			#music > div:nth-of-type(1) > div:nth-child(2) {
 				background-color: #F8F8F8;
+			}
+			#music > div:nth-of-type(1) > div:nth-child(2) > input {
+				width: 80%;
 			}
 	
 			/* users CSS */
