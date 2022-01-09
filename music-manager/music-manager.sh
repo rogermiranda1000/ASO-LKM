@@ -158,6 +158,14 @@ while true; do
 					logger -p local7.info "Canço retrocedida."
 				fi
 				;;
+				
+			"a")
+				playlist=`echo "$var" | awk '{ print $2 }'`
+				echo -n "$var" | awk '{ print $3 }' >> `echo "$playlists/$playlist.play"`
+				updatePlaylist # actualitzem les playlists
+				
+				logger -p local7.info "Nova info a la playlist $playlist."
+				;;
 			
 			*)
 				echo "Unknown: '$var'"

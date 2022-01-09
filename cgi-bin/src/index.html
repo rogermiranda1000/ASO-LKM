@@ -677,11 +677,19 @@
 				}
 				
 				nextSongInPlaylist() {
-					return fetch(`music.sh?action=next`).then(response => response.json());
+					return fetch('music.sh?action=next').then(response => response.json());
 				}
 				
 				previousSongInPlaylist() {
-					return fetch(`music.sh?action=back`).then(response => response.json());
+					return fetch('music.sh?action=back').then(response => response.json());
+				}
+				
+				addPlaylist(playlist) {
+					return fetch(`music.sh?action=add&playlist=${playlist}`).then(response => response.json());
+				}
+				
+				addSong(playlist, path) {
+					return fetch(`music.sh?action=add&playlist=${playlist}&song=${path}`).then(response => response.json());
 				}
 			};
 			
@@ -993,9 +1001,21 @@
 							{{playlist.playlist}}
 							<button @click="play(playlist.playlist)">></button>
 						</div>
+						<div>
+							<input type="text" v-model="new_playlist" />
+							<button @click="addPlaylist()">+</button>
+						</div>
 					</div>
 					<div v-if="selected !== null">
 						<span v-for="music in selected.files">{{music.path}}</span>
+						
+						<div>
+							<input type="text" ref="script" v-model="new_song" @keypress="pathChanging()" list="files" v-on:keydown.tab="interruptTab" />
+							<datalist id="files">
+								<option v-for="f in paths" v-bind:value="f.path" />
+							</datalist>
+							<button @click="addSong()">+</button>
+						</div>
 					</div>
 				</div>
 				
@@ -1264,6 +1284,10 @@
 					song_duration: 1,
 					song: '-',
 					
+					new_playlist: '',
+					new_song: '',
+					
+					paths: [],
 					info: []
 				},
 				methods: {
@@ -1300,10 +1324,33 @@
 					previous: function() {
 						searcher.previousSongInPlaylist();
 					},
+					addSong: function() {
+						if (this.selected === null) return; // no hauria de passar mai
+						searcher.addSong(this.selected.playlist, this.new_song).then(r => this.appendInfo('Canço afegida.')); // ja s'actualitza sol
+					},
+					addPlaylist: function() {
+						searcher.addPlaylist(this.new_playlist).then(r => this.appendInfo('Playlist afegida.')); // ja s'actualitza sol
+					},
+					pathChanging: function() {
+						setTimeout(this.pathChanged, 1); // keypress encara no ha afegit la tecla a la variable
+					},
+					pathChanged: function() {
+						searcher.getHints(this.new_song).then((e)=>{
+							this.paths = e.results;
+							if (this.$refs.script !== undefined) this.$refs.script.focus(); // si no datalist no es recarga
+						});
+					},
+					interruptTab: function() {
+						this.$refs.script.focus();
+						event.preventDefault();
+					},
 					launch: function() {
 						searcher.startMusicPlayer();
 					},
 					...popup_functions
+				},
+				beforeMount() {
+					this.pathChanged();
 				}
 			});
 			
