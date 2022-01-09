@@ -37,9 +37,9 @@ read tmp1 tmp2 <<< `echo "$QUERY_STRING" | cut -d "&" -f 2 | awk -F= '{ print $1
 get_info["$tmp1"]="$tmp2"
 
 if [ `isSudoer "$user"` == "1" ]; then
-	if [ "{get_info[time]}" != '' ]; then
+	if [ "${get_info[time]}" != '' ]; then
 		# stop
-		sudo kill -STOP "${get_info[pid]}" >/dev/null
+		sudo kill -STOP "${get_info[pid]}" 2>/dev/null
 		
 		echo "content-type: text/plain"
 		echo
@@ -52,15 +52,17 @@ if [ `isSudoer "$user"` == "1" ]; then
 		
 	else
 		# the user is sudoer -> run kill always
-		sudo kill -9 "${get_info[pid]}" >/dev/null
+		sudo kill -9 "${get_info[pid]}" 2>/dev/null
+		
 		echo "content-type: text/plain"
 		echo
 		echo "{\"result\":\"killed as sudo\"}"
+		
 		logger -p local7.info "User $user running 'kill -9 ${get_info[pid]}' as sudo..."
 	fi
 else
 	# kill
-	if [ -z "{get_info[time]}" ] && [ `./login.sh "$token" kill -9 "${get_info[pid]}" | grep -c 'Operation not permitted'` -eq 0 ]; then
+	if [ -z "${get_info[time]}" ] && [ `./login.sh "$token" kill -9 "${get_info[pid]}" | grep -c 'Operation not permitted'` -eq 0 ]; then
 		echo "content-type: text/plain"
 		echo
 		echo "{\"result\":\"killed\"}"
