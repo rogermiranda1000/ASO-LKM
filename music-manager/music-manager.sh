@@ -44,17 +44,9 @@ function getPlaylists() {
 	fi
 }
 
-time="0/0"
-status="0" # 0: stopped, 1: paused, 2: unpaused
-function updateContents() {
-	echo -n "{\"playlists\":" > "$music_manager_info"
-	getPlaylists >> "$music_manager_info"
-	echo ",\"time\":\"$time\",\"status\":$status}" >> "$music_manager_info" # TODO add more
-}
-
 playlist_path=""
-song_number="0"
-current_song="0"
+song_number=0
+current_song=0
 function loadPlaylist() {
 	playlist_path="$playlists/$1.play"
 	song_number=`wc -l "$playlist_path" | awk '{ print $1 }'`
@@ -65,9 +57,27 @@ function loadPlaylist() {
 
 function updatePlaylist() {
 	let "current_song++"
-	if [ "$current_song" -le "$song_number" ]; then
+	if [ "$current_song" -gt 0 ] && [ "$current_song" -le "$song_number" ]; then
 		sudo sh -c "echo 'loadlist $current_song $playlist_path' > $write_pipe"
 	fi
+}
+
+function getCurrentSongPlaying() {
+	music=`sed "${current_song}q;d" "$playlist_path" 2>/dev/null`
+	if [ -z "$music" ]; then
+		echo "null"
+	else
+		echo "\"$music\""
+	fi
+}
+
+time="0/0"
+status="0" # 0: stopped, 1: paused, 2: unpaused
+function updateContents() {
+	song=`getCurrentSongPlaying`
+	echo -n "{\"playlists\":" > "$music_manager_info"
+	getPlaylists >> "$music_manager_info"
+	echo ",\"time\":\"$time\",\"status\":$status,\"song\":$song}" >> "$music_manager_info" # TODO add more
 }
 
 # @param mpg123's line
@@ -128,6 +138,25 @@ while true; do
 				# load playlist
 				loadPlaylist `echo "$var" | awk '{ print $2 }'`
 				updatePlaylist
+				;;
+			
+			"n")
+				# next song in playlist
+				if [ "$current_song" -lt "$song_number" ]; then
+					updatePlaylist
+					
+					logger -p local7.info "Canço saltada."
+				fi
+				;;
+			
+			"b")
+				# previous song in playlist
+				if [ "$current_song" -gt 1 ]; then
+					let "current_song-=2" # current_song--
+					updatePlaylist
+					
+					logger -p local7.info "Canço retrocedida."
+				fi
 				;;
 			
 			*)
