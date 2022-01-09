@@ -703,6 +703,10 @@
 					return fetch('music.sh?action=loop').then(response => response.json());
 				}
 				
+				shufflePlaylist(playlist) {
+					return fetch(`music.sh?action=shuffle&playlist=${playlist}`).then(response => response.json());
+				}
+				
 				loadPlaylist(playlist) {
 					return fetch(`music.sh?action=load&playlist=${playlist}`).then(response => response.json());
 				}
@@ -1060,19 +1064,19 @@
 					<svg @click="previous()" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
 					
 					<!-- Play -->
-					<svg @click="start()" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+					<svg @click="start()" v-bind:class="{ pressed: status !== 1 }" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
 					
 					<!-- Stop -->
-					<svg @click="stop()" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+					<svg @click="stop()" v-bind:class="{ pressed: status !== 2 }" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
 					
 					<!-- Next -->
 					<svg @click="next()" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
 					
 					<!-- Loop -->
-					<svg @click="loop()" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path></svg>
+					<svg @click="loop()" v-bind:class="{ pressed: is_looping }" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path></svg>
 					
 					<!-- Shuffle -->
-					<svg xmlns="http://www.w3.org/2000/svg" viewBox="3 3 18 18" fill="none"><path d="M16.4697 5.46967C16.1768 5.76256 16.1768 6.23744 16.4697 6.53033L17.1893 7.25H13.3768C12.706 7.25 12.0942 7.63343 11.8018 8.23713L11.5914 8.67144C11.5381 8.78157 11.5381 8.91006 11.5914 9.02018L12.1603 10.1947C12.2332 10.3451 12.4474 10.3451 12.5203 10.1947L13.1518 8.89102C13.1935 8.80478 13.2809 8.75 13.3768 8.75H17.1893L16.4697 9.46967C16.1768 9.76256 16.1768 10.2374 16.4697 10.5303C16.7626 10.8232 17.2374 10.8232 17.5303 10.5303L19.5303 8.53033C19.8232 8.23744 19.8232 7.76256 19.5303 7.46967L17.5303 5.46967C17.2374 5.17678 16.7626 5.17678 16.4697 5.46967Z" fill="black"/><path d="M10.0336 15.3286C10.0869 15.2184 10.0869 15.0899 10.0336 14.9798L9.46469 13.8053C9.39183 13.6549 9.17755 13.6549 9.10469 13.8053L8.47324 15.109C8.43146 15.1952 8.34407 15.25 8.24824 15.25H5C4.58579 15.25 4.25 15.5858 4.25 16C4.25 16.4142 4.58579 16.75 5 16.75H8.24824C8.91903 16.75 9.53079 16.3666 9.82321 15.7629L10.0336 15.3286Z" fill="black"/><path d="M16.4697 18.5303C16.1768 18.2374 16.1768 17.7626 16.4697 17.4697L17.1893 16.75H13.3768C12.706 16.75 12.0942 16.3666 11.8018 15.7629L8.47324 8.89102C8.43146 8.80478 8.34407 8.75 8.24824 8.75H5C4.58579 8.75 4.25 8.41421 4.25 8C4.25 7.58579 4.58579 7.25 5 7.25H8.24824C8.91903 7.25 9.53079 7.63343 9.82321 8.23713L13.1518 15.109C13.1935 15.1952 13.2809 15.25 13.3768 15.25H17.1893L16.4697 14.5303C16.1768 14.2374 16.1768 13.7626 16.4697 13.4697C16.7626 13.1768 17.2374 13.1768 17.5303 13.4697L19.5303 15.4697C19.8232 15.7626 19.8232 16.2374 19.5303 16.5303L17.5303 18.5303C17.2374 18.8232 16.7626 18.8232 16.4697 18.5303Z" fill="black"/></svg>
+					<svg @click="shuffle()" xmlns="http://www.w3.org/2000/svg" viewBox="3 3 18 18" fill="none"><path d="M16.4697 5.46967C16.1768 5.76256 16.1768 6.23744 16.4697 6.53033L17.1893 7.25H13.3768C12.706 7.25 12.0942 7.63343 11.8018 8.23713L11.5914 8.67144C11.5381 8.78157 11.5381 8.91006 11.5914 9.02018L12.1603 10.1947C12.2332 10.3451 12.4474 10.3451 12.5203 10.1947L13.1518 8.89102C13.1935 8.80478 13.2809 8.75 13.3768 8.75H17.1893L16.4697 9.46967C16.1768 9.76256 16.1768 10.2374 16.4697 10.5303C16.7626 10.8232 17.2374 10.8232 17.5303 10.5303L19.5303 8.53033C19.8232 8.23744 19.8232 7.76256 19.5303 7.46967L17.5303 5.46967C17.2374 5.17678 16.7626 5.17678 16.4697 5.46967Z" fill="black"/><path d="M10.0336 15.3286C10.0869 15.2184 10.0869 15.0899 10.0336 14.9798L9.46469 13.8053C9.39183 13.6549 9.17755 13.6549 9.10469 13.8053L8.47324 15.109C8.43146 15.1952 8.34407 15.25 8.24824 15.25H5C4.58579 15.25 4.25 15.5858 4.25 16C4.25 16.4142 4.58579 16.75 5 16.75H8.24824C8.91903 16.75 9.53079 16.3666 9.82321 15.7629L10.0336 15.3286Z" fill="black"/><path d="M16.4697 18.5303C16.1768 18.2374 16.1768 17.7626 16.4697 17.4697L17.1893 16.75H13.3768C12.706 16.75 12.0942 16.3666 11.8018 15.7629L8.47324 8.89102C8.43146 8.80478 8.34407 8.75 8.24824 8.75H5C4.58579 8.75 4.25 8.41421 4.25 8C4.25 7.58579 4.58579 7.25 5 7.25H8.24824C8.91903 7.25 9.53079 7.63343 9.82321 8.23713L13.1518 15.109C13.1935 15.1952 13.2809 15.25 13.3768 15.25H17.1893L16.4697 14.5303C16.1768 14.2374 16.1768 13.7626 16.4697 13.4697C16.7626 13.1768 17.2374 13.1768 17.5303 13.4697L19.5303 15.4697C19.8232 15.7626 19.8232 16.2374 19.5303 16.5303L17.5303 18.5303C17.2374 18.8232 16.7626 18.8232 16.4697 18.5303Z" fill="black"/></svg>
 				</div>
 				
 				<!-- popups -->
@@ -1317,6 +1321,8 @@
 					song_listened: 0,
 					song_duration: 1,
 					song: '-',
+					is_looping: 0,
+					status: 0,
 					
 					new_playlist: '',
 					new_song: '',
@@ -1338,6 +1344,8 @@
 								this.song = (r.data.song === null ? '-' : r.data.song);
 								this.song_listened = parseFloat(r.data.time.split('/')[0]);
 								this.song_duration = r.data.time.split('/')[1] == '0' ? 1 : parseFloat(r.data.time.split('/')[1]);
+								this.status = r.data.status;
+								this.is_looping = r.data.loop;
 								
 								if (this.selected !== null) this.selected = this.playlists.filter(p => p.playlist === this.selected.playlist)[0];
 								if (this.selected === undefined) this.selected = null;
@@ -1360,6 +1368,10 @@
 					},
 					loop: function() {
 						searcher.toggleLoopPlaylist();
+					},
+					shuffle: function() {
+						if (this.selected === null) return;
+						searcher.shufflePlaylist(this.selected.playlist);
 					},
 					previous: function() {
 						searcher.previousSongInPlaylist();

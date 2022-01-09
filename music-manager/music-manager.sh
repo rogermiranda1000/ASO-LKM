@@ -104,6 +104,7 @@ function getTime() {
 		"@P")
 			status=`echo "$1" | awk '{ print $2 }'`
 			if [ "$status" -eq 0 ]; then
+				time="0/0"
 				updatePlaylist # if there's more songs, play them
 			fi
 			;;
@@ -148,7 +149,7 @@ while true; do
 					logger -p local7.info "Canço reanudada."
 				fi
 				;;
-				
+			
 			"s")
 				# stop
 				if [ "$status" -eq 2 ]; then
@@ -163,7 +164,7 @@ while true; do
 				# load playlist
 				loadPlaylist `echo "$var" | awk '{ print $2 }'`; ret=$?
 				if [ $ret -eq 0 ]; then
-					updatePlaylist
+					updatePlaylist # el logger es fa aquí
 				fi
 				;;
 			
@@ -187,15 +188,25 @@ while true; do
 					logger -p local7.info "Canço retrocedida."
 				fi
 				;;
-				
+			
 			"w")
 				if [ "$loop" -eq 0 ]; then
 					loop=1
 				else
 					loop=0
 				fi
-				;;
 				
+				logger -p local7.info "Activat mode toggle."
+				;;
+			
+			"z")
+				playlist=`echo "$var" | awk '{ print $2 }'`
+				path="$playlists/$playlist.play"
+				cat "$path" | shuf -o "$path" # randomitza l'ordre, i el guardes al mateix fitxer
+				
+				logger -p local7.info "Shuffle $playlist."
+				;;
+			
 			"a")
 				playlist=`echo "$var" | awk '{ print $2 }'`
 				echo -n "$var" | awk '{ print $3 }' >> `echo "$playlists/$playlist.play"`
