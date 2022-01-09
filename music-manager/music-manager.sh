@@ -48,11 +48,17 @@ playlist_path=""
 song_number=0
 current_song=0
 function loadPlaylist() {
+	tmp=`wc -l "$playlist_path" | awk '{ print $1 }'`
+	if [ "$tmp" -eq 0 ]; then
+		return 1
+	fi
+	
+	song_number="$tmp"
 	playlist_path="$playlists/$1.play"
-	song_number=`wc -l "$playlist_path" | awk '{ print $1 }'`
 	current_song="0"
 	
 	logger -p local7.info "Reproduint playlist '$1'..."
+	return 0
 }
 
 function updatePlaylist() {
@@ -136,8 +142,10 @@ while true; do
 			
 			"l")
 				# load playlist
-				loadPlaylist `echo "$var" | awk '{ print $2 }'`
-				updatePlaylist
+				loadPlaylist `echo "$var" | awk '{ print $2 }'`; ret=$?
+				if [ $ret -eq 0 ]; then
+					updatePlaylist
+				fi
 				;;
 			
 			"n")
@@ -162,7 +170,7 @@ while true; do
 			"a")
 				playlist=`echo "$var" | awk '{ print $2 }'`
 				echo -n "$var" | awk '{ print $3 }' >> `echo "$playlists/$playlist.play"`
-				updatePlaylist # actualitzem les playlists
+				updateContents # actualitzem les playlists
 				
 				logger -p local7.info "Nova info a la playlist $playlist."
 				;;
