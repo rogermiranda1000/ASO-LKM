@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Linux manager</title>
+		<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+		<style>
+			/* general CSS */
+			* {
+				font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+				--header-width: 300px;
+			}
+			.shadow , .error , .info , #tasks table , #userPanel , #users article:nth-child(2) form button , #users article:nth-child(2) form input , #userPanel div:nth-child(2) > button , #processes > input , #music > div:nth-of-type(1) , #music-controller , #stoppedMusic > button{
+				box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
+			}
+			body {
+				margin: 0px;
+			}
+			header {
+				display: flex;
+				flex-direction: column;
+				justify-content: space-between;
+	
+				background-color: #B8E1FF;
+				position: absolute;
+				top: 0px;
+				left: 0px;
+				height: calc(100%);
+				width: var(--header-width);
+			}
+			main {
+				position: absolute;
+				top: 0px;
+				left: 300px;
+				padding: 40px 70px 70px 70px;
+				width: calc(100% - 440px);
+				height: calc(100% - 110px);
+	
+				display: flex;
+				flex-direction: row;
+			}
+			
+			.error , .info {
+				position: absolute;
+				bottom: 0px;
+				left: 50%;
+				bottom: 0%;
+				width: 65%;
+				transform: translate(-50%, -50%);
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				padding: 25px;
+				font-weight: 500;
+				z-index: 10;
+				opacity: 0.8;
+				transition: opacity 0.2s;
+			}
+			.error:hover , .info:hover {
+				opacity: 1;
+			}
+			.error > button , .info > button {
+				position: absolute;
+				top: 2px;
+				right: 2px;
+				background-color: transparent;
+				border: none;
+				z-index: 100;
+				font-size: large;
+			}
+			.error {
+				background-color: rgb(230, 89, 89);
+			}
+			
+			.info {
+				background-color: rgb(95, 175, 95);
+			}
+	
+			header > nav {
+				display: flex;
+				flex-direction: column;
+				align-items: flex-start;
+				justify-content: flex-start;
+			}
+			header a {
+				text-decoration: none;
+				color: black;
+				text-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
+				font-size: large;
+				font-weight: 600;
+			}
+			header > nav > a {
+				width: 76%;
+				padding: 10% 12% 10% 12%;
+			}
+			header > div > a {
+				padding: 10% 0px 10% 12%;
+			}
+			.selected {
+				background-color: #20567c;
+				color: white;
+				box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.705);
+			}
+	
+			h1 {
+				margin-bottom: 35px;
+				font-size: xx-large;
+			}
+			h3 {
+				margin-top: 35px;
+				font-size: large;
+			}
+			table {
+				border-spacing: 0px 0px;
+			}
+	
+			td , th {
+				padding: 6px 30px 6px 30px;
+			}
+			tr:nth-child(2n) {
+				background: #F8F8F8;
+			}
+			tr:nth-child(2n - 1) {
+				background: #F1F1F1;
+			}
+			#start {
+				width: 40px;
+				height: 40px;
+				margin-left: 25px;
+			}
+			#restart {
+				width: 48px;
+				height: 48px;
+				margin-left: 25px;
+			}
+			header > div {
+				display: flex;
+				align-items: center;
+			}
+			.pointer:hover , button:hover , #music-controller > svg {
+				cursor: pointer;
+			}
+			button[disabled] {
+				cursor: not-allowed;
+			}
+	
+			.horizontal {
+				display: flex;
+				flex-direction: row;
+				justify-content: space-between;
+			}
+			table button {
+				background-color: rgb(238, 50, 50);
+				transition: background-color 0.3s;
+				color: white;
+				font-weight: bolder;
+				font-size: large;
+				border: none;
+				border-radius: 100px;
+				box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
+				width: 28px;
+				height: 28px;
+			}
+			table button[disabled] {
+				background-color: gray;
+			}
+	
+			#tableProcess , #tasks table , #paquets table, #userPanel > div:nth-child(1){
+				overflow-y: scroll;
+				table-layout: fixed;
+				height: 70vh;
+				display: block;
+			}
+			#processes, #tableProcess, #tableProcess tr:first-child > th {
+				width: 100%;
+			}
+			tr:first-child {
+				position: sticky;
+				top: 0;
+				background-color: #84D3FF;
+			}
+			
+			/* tooltip (https://www.w3schools.com/css/css_tooltip.asp) */
+			.tooltip {
+				position: relative;
+				display: inline-block;
+			}
+			
+			.tooltip::after {
+				content: "﹖";
+			}
+	
+			.tooltip .tooltiptext {
+				visibility: hidden;
+				width: 200px;
+				background-color: black;
+				color: #fff;
+				text-align: center;
+				border-radius: 6px;
+				padding: 5px 0;
+				position: absolute;
+				z-index: 1;
+				top: 150%;
+				left: 50%;
+				margin-left: -100px;
+			}
+	
+			.tooltip .tooltiptext::after {
+				content: "";
+				position: absolute;
+				bottom: 100%;
+				left: 50%;
+				margin-left: -5px;
+				border-width: 5px;
+				border-style: solid;
+				border-color: transparent transparent black transparent;
+			}
+	
+			.tooltip:hover .tooltiptext {
+				visibility: visible;
+			}
+	
+			/* music CSS */
+			#music progress {
+				width: 60%;
+				height: 25px;
+			}
+			#music > div:nth-of-type(2) {
+				font-size: medium;
+				margin: 30px 15px 15px 15px;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+			}
+			#music > div:nth-of-type(1) > div:nth-of-type(2) input {
+				margin: 10px;
+				width: 80%;
+			}
+			#stoppedMusic {
+				padding: 10px 30px;
+				color: red;
+				font-weight: bold;
+				width: fit-content;
+			}
+			#stoppedMusic > {
+				margin: 10px;
+			}
+			#stoppedMusic > button {
+				margin: 10px;
+				padding: 12px 18px;
+				border-radius: 20px;
+				border: none;
+				background-color: #F1F1F1;
+				font-size: medium;
+			}
+
+			#music {
+				display: flex;
+				flex-direction: column;
+			}
+			#music-controller {
+				display: flex;
+				flex-direction: row;
+				justify-content: space-around;
+				width: 450px;
+				padding: 20px 50px 20px 28px;
+				margin: 15px 35px 35px 35px;
+				align-self: center;
+				background-color: #d4f0ff;
+				border-radius: 40px;
+				align-items: center;
+			}
+	
+			#music-controller > svg {
+				height: 60px;
+				transition: filter 0.1s , transform 0.09s;
+			}
+			#music-controller > svg.pressed {
+				filter: drop-shadow(2px 3px 2px rgba(0, 0, 0, 0.267));
+			}
+			#music-controller > svg.pressed > path {
+				fill: rgb(73, 231, 223);
+			}
+			#music-controller > svg > path {
+				transition: fill 0.15s;
+			}
+			#music-controller > svg:hover {
+				filter: drop-shadow(2px 8px 2px rgb(0 0 0 / 0.4));
+				transform: scale(1.07);
+			}
+			#music-controller > svg:hover:not(.pressed) > path {
+				fill: rgb(11, 82, 104);
+			}
+			#music-controller > svg:active {
+				filter: drop-shadow(1px 3px 1px rgb(0 0 0 / 0.6));
+				transform: scale(0.9);
+			}
+			#music-controller > svg:active:not(.pressed) > path {
+				fill: rgb(90, 198, 231);
+			}
+	
+			#music-controller > svg:nth-of-type(4) {
+				margin-right: 50px;
+			}
+			#music > div:nth-of-type(1):not(#stoppedMusic) {
+				background-color: #F1F1F1;
+				display: flex;
+				flex-direction: row;
+				height: 60%;
+				width: fit-content;
+			}
+			#music > div:nth-of-type(1) > div {
+				display: flex;
+				flex-direction: column;
+				padding: 20px;
+			}
+			#music > div:nth-of-type(1) > div > span , #music > div:nth-of-type(1) > div > div {
+				padding: 7px 20px;
+				margin: 5px;
+			}
+			#music > div:nth-of-type(1) > div > div > button {
+				border: none;
+				border-radius: 4px;
+				padding: 4px;
+				background-color: #000000;
+				color: white;
+				font-size: medium;
+				font-weight: bold;
+				width: 30px;
+				height: 30px;
+			}
+			#music > div:nth-of-type(1) > div:nth-child(1) {
+				background-color: #F1F1F1;
+			}
+			#music > div:nth-of-type(1) > div:nth-child(2) {
+				background-color: #F8F8F8;
+			}
+			#music > div:nth-of-type(1) > div:nth-child(2) > input {
+				width: 80%;
+			}
+	
+			/* users CSS */
+			#users {
+				width: 100%;
+			}
+			#users article:nth-child(1) {
+				width: 55%;
+			}
+			#users article:nth-child(2) {
+				width: 35%;
+			}
+			#users > div {
+				display: flex;
+				flex-direction: row;
+				justify-content: space-around;
+			}
+			#userPanel {
+				display: flex;
+				flex-direction: row;
+				background: #F8F8F8;
+			}
+			#userPanel div:nth-child(1) {
+				display: flex;
+				flex-direction: column;
+				width: 70%;
+			}
+			#userPanel div:nth-child(1) span {
+				padding: 10px;
+			}
+			#userPanel div:nth-child(1) span:nth-child(2n):not(.selected) {
+				background: #F8F8F8;
+			}
+			#userPanel div:nth-child(1) span:nth-child(2n - 1):not(.selected) {
+				background: #F1F1F1;
+			}
+			#userPanel div span.selected {
+				background-color: #8C8C8C;
+				color: white;
+				font-weight: bold;
+			}
+			#userPanel div:nth-child(2) {
+				width: 30%;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: start;
+				padding: 10px;
+			}
+			#userPanel div:nth-child(2) > div {
+				display: flex;
+				flex-direction: row;
+				justify-content: center;
+				transform: translate(-3px, 0);
+				margin: 22px;
+			}
+			#userPanel div:nth-child(2) > div * {
+				margin-right: 10px;
+			}
+			#userPanel div:nth-child(2) > button {
+				background-color: rgb(238, 50, 50);
+				padding: 4px 15px 4px 15px;
+				font-size: medium;
+				font-weight: bold;
+				border: none;
+				border-radius: 6px;
+			}
+	
+			#users article:nth-child(2) form {
+				display: flex;
+				flex-direction: column;
+			}
+			#users article:nth-child(2) form input {
+				width: 100%;
+				font-size: medium;
+				margin-bottom: 30px;
+				background: #F1F1F1;
+				border: none;
+				border-radius: 8px;
+				height: 42px;
+			}
+			#users article:nth-child(2) form button {
+				width: 50px;
+				height: 50px;
+				font-size: 30px;
+				border: none;
+				border-radius: 100px;
+				background-color: #030104;
+				color: white;
+				align-self: center;
+				margin-top: 15px;
+			}
+			#users article:nth-child(2) form button:hover {
+				background-color: rgb(63, 63, 63);
+			}
+			#users article:nth-child(2) form * {
+				padding: 3px;
+				margin-bottom: 10px;
+			}
+	
+			/* tasks CSS */
+			#tasks table, #tasks table tr:first-child > th {
+				width: 100%;
+			}
+			#tasks table , #paquets table{
+				background-color: #F8F8F8;
+				height: 80vh;
+			}
+	
+			/* paquets CSS */
+			#paquets tr:first-child th {
+				padding: 22px;
+			}
+			.accept , option[value=ACCEPT] , select[data-chosen=ACCEPT] {
+				background-color: rgb(118, 206, 118);
+			}
+			.drop , option[value=DROP] , select[data-chosen=DROP] {
+				background-color: rgb(236, 96, 96);
+			}
+			#paquets select {
+				height: 25px;
+			}
+	
+			/* tasks CSS */
+			#tasks table, #tasks table tr:first-child > th {
+				width: 100%;
+			}
+			#tasks table tr:last-child > td:first-child {
+				font-weight: bold;
+			}
+			#tasks table input {
+				width: 17vw;
+			}
+			#tasks table input:last-child {
+				width: 2vw;
+			}
+			
+			/* processes CSS */
+			.sorting-asc::after {
+				content: " [/\\]";
+			}
+			.sorting-desc::after {
+				content: " [v]";
+			}
+			#statsHead {
+				margin-bottom: 20px;
+				width: 100%;
+			}
+			#statsHead > div:first-child {
+				background-color: #C5EAFF;
+				padding: 10px;
+			}
+			#statsHead > div:nth-child(2) {
+				display: flex;
+			}
+			#statsHead > div > div {
+				background-color: #84D3FF;
+				padding: 10px;
+				margin-left: 15px;
+			}
+			#statsHead div > span {
+				font-weight: 1000;
+			}
+			/*#tableProcess tr:first-child > th {
+				width: calc(70vh / 6);
+			}*/
+			#processes > input {
+				height: 28px;
+				width: 60px;
+				font-size: medium;
+				background-color: #F1F1F1;
+				border: none;
+			}
+			#tableProcess {
+				margin-top: 20px;
+			}
+			#tableProcess tr > td {
+				text-align: center;
+			}
+			#processes table button:hover {
+				background-color: rgb(150, 26, 26);
+			}
+	
+			/* logs CSS */
+			textarea {
+				width: 50vw;
+				height: 33vh;
+				font-size: medium;
+				padding: 10px;
+				border: none;
+				background-color: #F1F1F1;
+			}
+			
+			#logs > div {
+				display: flex;
+			}
+			
+			#logs > div > article:first-child {
+				padding-right: 70px;
+			}
+		</style>
+		<script>
+			class Searcher {
+				constructor() {}
+
+				logout() {
+					return fetch('logout.sh');
+				}
+				
+				getProcesses() {
+					return fetch('processes.sh').then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				getLogs() {
+					return fetch('logs.sh').then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				killProcess(pid) {
+					return fetch(`kill.sh?pid=${pid}`).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				stopProcess(pid, time) {
+					return fetch(`kill.sh?pid=${pid}&time=${time}`).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				getHints(path) {
+					return fetch(`search.sh?path=${path}`).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				getTasks() {
+					return fetch('cron.sh').then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				addTask(minute, hour, m_day, month, w_day, script) {
+					return fetch(`cron.sh?action=add&minute=${minute}&hour=${hour}&m_day=${m_day}&month=${month}&w_day=${w_day}&script=${encodeURIComponent(script)}`).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				removeTask(minute, hour, m_day, month, w_day, script, user) {
+					return fetch(`cron.sh?action=remove&minute=${minute}&hour=${hour}&m_day=${m_day}&month=${month}&w_day=${w_day}&script=${encodeURIComponent(script)}&user=${user}`).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				getFilters() {
+					return fetch('packets.sh').then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				addFilter(clase, ip_src, ip_dst, port_src, port_dst, protocol, action) {
+					return fetch(`packets.sh?do=A&class=${clase}&action=${action}&ip_src=${ip_src}&ip_dst=${ip_dst}&port_src=${port_src}&port_dst=${port_dst}&protocol=${protocol}`).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				removeFilter(clase, ip_src, ip_dst, port_src, port_dst, protocol, action) {
+					return fetch(`packets.sh?do=D&class=${clase}&action=${action}&ip_src=${ip_src}&ip_dst=${ip_dst}&port_src=${port_src}&port_dst=${port_dst}&protocol=${protocol}`).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				getUsers() {
+					return fetch('users.sh').then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				addUser(username, password) {
+					return fetch('users.sh', {
+								method: 'POST',
+								headers: {
+								  'Content-Type': 'application/x-www-form-urlencoded'
+								},
+								body: `action=add&user=${username}&password=${password}`
+							}).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				removeUser(username) {
+					return fetch('users.sh', {
+								method: 'POST',
+								headers: {
+								  'Content-Type': 'application/x-www-form-urlencoded'
+								},
+								body: `action=remove&user=${username}`
+							}).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				setSudo(username, bool) {
+					return fetch('users.sh', {
+								method: 'POST',
+								headers: {
+								  'Content-Type': 'application/x-www-form-urlencoded'
+								},
+								body: `action=set&setter=superuser&user=${username}&setter_value=${bool ? 'true' : 'false'}`
+							}).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				stop() {
+					return fetch('shutdown.sh').then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				reboot() {
+					return fetch('shutdown.sh?restart=true').then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				listPlaylists() {
+					return fetch('music.sh').then(response => response.json());
+				}
+				
+				startMusicPlayer() {
+					return fetch('music.sh?action=open').then(response => response.json());
+				}
+				
+				playSong() {
+					return fetch('music.sh?action=play').then(response => response.json());
+				}
+				
+				stopSong() {
+					return fetch('music.sh?action=stop').then(response => response.json());
+				}
+				
+				toggleLoopPlaylist() {
+					return fetch('music.sh?action=loop').then(response => response.json());
+				}
+				
+				shufflePlaylist(playlist) {
+					return fetch(`music.sh?action=shuffle&playlist=${playlist}`).then(response => response.json());
+				}
+				
+				loadPlaylist(playlist) {
+					return fetch(`music.sh?action=load&playlist=${playlist}`).then(response => response.json());
+				}
+				
+				nextSongInPlaylist() {
+					return fetch('music.sh?action=next').then(response => response.json());
+				}
+				
+				previousSongInPlaylist() {
+					return fetch('music.sh?action=back').then(response => response.json());
+				}
+				
+				addPlaylist(playlist) {
+					return fetch(`music.sh?action=add&playlist=${playlist}`).then(response => response.json());
+				}
+				
+				addSong(playlist, path) {
+					return fetch(`music.sh?action=add&playlist=${playlist}&song=${path}`).then(response => response.json());
+				}
+			};
+			
+			const searcher = new Searcher();
+			function logout() {
+				searcher.logout().then((e)=>{
+					document.cookie = 'token='; // remove token
+					window.location = '/'; // ja s'ha fet logout, torna a la pàgina principal
+				});
+			}
+			
+			var active = null;
+			function stop() {
+				searcher.stop().then((r)=>{
+					if (r.status !== 200) active?.appendError(r.err);
+					// mai arribarà un codi 200 (el servidor s'aturarà abans d'enviar-lo)
+				});
+			}
+			
+			function reboot() {
+				searcher.reboot().then((r)=>{
+					if (r.status !== 200) active?.appendError(r.err);
+				});
+			}
+			
+			function validateCron(e) {
+				var regex = /^[0-9/\-,*]+$/;
+				var str = String.fromCharCode(!e.charCode ? e.which : e.charCode);
+				if (regex.test(str)) return true;
+
+				e.preventDefault();
+				return false;
+			}
+		</script>
+	</head>
+	<body>
+		<header>
+			<nav>
+				<a href="#" class="selected" id="processes_a" onmouseover="show('processes')">Gestió de procéssos</a>
+				<a href="#" id="logs_a" onmouseover="show('logs')">Gestió de logs</a>
+				<a href="#" id="tasks_a" onmouseover="show('tasks')">Programació de tasques</a>
+				<a href="#" id="music_a" onmouseover="show('music')">Gestió de música</a>
+				<a href="#" id="users_a" onmouseover="show('users')">Gestió d'usuaris</a>
+				<a href="#" id="paquets_a" onmouseover="show('paquets')">Filtrat de paquets</a>
+			</nav>
+			
+			<div>
+				<a id="logout" href="#" onclick="logout()">Logout</a>
+				<svg id="start" onclick="stop()" class="pointer" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 30.143 30.143" style="enable-background:new 0 0 30.143 30.143;" xml:space="preserve">
+					<g>
+						<path style="fill:#030104;" d="M20.034,2.357v3.824c3.482,1.798,5.869,5.427,5.869,9.619c0,5.98-4.848,10.83-10.828,10.83   c-5.982,0-10.832-4.85-10.832-10.83c0-3.844,2.012-7.215,5.029-9.136V2.689C4.245,4.918,0.731,9.945,0.731,15.801   c0,7.921,6.42,14.342,14.34,14.342c7.924,0,14.342-6.421,14.342-14.342C29.412,9.624,25.501,4.379,20.034,2.357z"/>
+						<path style="fill:#030104;" d="M14.795,17.652c1.576,0,1.736-0.931,1.736-2.076V2.08c0-1.148-0.16-2.08-1.736-2.08   c-1.57,0-1.732,0.932-1.732,2.08v13.496C13.062,16.722,13.225,17.652,14.795,17.652z"/>
+					</g>
+				</svg>
+				<svg id="restart" onclick="reboot()" class="pointer" xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.75 8a4.5 4.5 0 0 1-8.61 1.834l-1.391.565A6.001 6.001 0 0 0 14.25 8 6 6 0 0 0 3.5 4.334V2.5H2v4l.75.75h3.5v-1.5H4.352A4.5 4.5 0 0 1 12.75 8z"/></svg>
+			</div>
+		</header>
+		<main>
+			<section id="processes" v-if="active">
+				<h1>Gestió de processos</h1>
+				<div id="statsHead" class="horizontal">
+					<div>Temps encès: <span>{{uptime}}</span></div>
+					<div>
+						<div>CPU: <span>{{cpu_usage()}}</span></div>
+						<div>RAM: <span>{{ram_usage}}</span></div>
+						<div>Disc: <span>{{disc_usage}}</span></div>
+						<div>Auto-reload <input type="checkbox" v-model="reload" @change="reloadChanged()" /></div>
+					</div>
+				</div>
+				
+				Pausar durant: <input type="number" v-model="pause_time" /> segons
+				<table id="tableProcess">
+				  <tr>
+					<th v-bind:class="{ 'sorting-asc': sort_by === 'command' && !desc, 'sorting-desc': sort_by === 'command' && desc }" @click="setSort('command')">Nom</th>
+					<th v-bind:class="{ 'sorting-asc': sort_by === 'user' && !desc, 'sorting-desc': sort_by === 'user' && desc }" @click="setSort('user')">Usuari</th>
+					<th v-bind:class="{ 'sorting-asc': sort_by === 'pid' && !desc, 'sorting-desc': sort_by === 'pid' && desc }" @click="setSort('pid')">PID</th>
+					<th class="tooltip" v-bind:class="{ 'sorting-asc': sort_by === 'status' && !desc, 'sorting-desc': sort_by === 'status' && desc }" @click="setSort('status')">
+						Status
+						<span class="tooltiptext">
+							D = uninterruptible sleep<br/>
+							I = idle<br/>
+							R = running<br/>
+							S = sleeping<br/>
+							T = stopped by job control signal<br/>
+							t = stopped by debugger during trace<br/>
+							Z = zombie
+						</span>
+					</th>
+					<th v-bind:class="{ 'sorting-asc': sort_by === 'cpu' && !desc, 'sorting-desc': sort_by === 'cpu' && desc }" @click="setSort('cpu')">CPU</th>
+					<th v-bind:class="{ 'sorting-asc': sort_by === 'mem' && !desc, 'sorting-desc': sort_by === 'mem' && desc }" @click="setSort('mem')">RAM</th>
+					<th></th>
+					<th></th>
+				  </tr>
+				  <tr v-for="p in sortedProcesses">
+					<td>{{p.command}}</td>
+					<td>{{p.user}}</td>
+					<td>{{p.pid}}</td>
+					<td>{{p.status}}</td>
+					<td>{{Math.trunc(p.cpu*100)}}%</td>
+					<td>{{Math.trunc(p.mem*100)}}%</td>
+					<td><button @click="stop(p.pid)">||</button></td>
+					<td><button @click="kill(p.pid)">x</button></td>
+				  </tr>
+				</table>
+				
+				<!-- popups -->
+				<div v-bind:class="i.style" v-for="i in info">
+					{{i.msg}}
+					<button @click="discardVar(i.id)">x</button>
+				</div>
+			</section>
+			
+			<section id="logs" v-if="active">
+				<h1>Gestió de logs</h1>
+				
+				<div>
+					<article>
+						<h3>Últims accessos</h3>
+						<table>
+						  <tr>
+							<th>Usuari</th>
+							<th>Data</th>
+						  </tr>
+						  <tr v-for="l in last">
+							<td>{{l.user}}</td>
+							<td>{{l.date}}</td>
+						  </tr>
+						</table>
+					</article>
+					
+					<article>
+						<h3>Logs</h3>
+						<textarea readonly ref="logs_text">{{logs}}</textarea>
+					</article>
+				</div>
+				
+				<!-- popups -->
+				<div v-bind:class="i.style" v-for="i in info">
+					{{i.msg}}
+					<button @click="discardVar(i.id)">x</button>
+				</div>
+			</section>
+			
+			<section id="tasks" v-if="active">
+				<h1>Programació de tasques</h1>
+				
+				<table>
+				  <tr>
+					<th>Usuari</th>
+					<th>Minut</th>
+					<th>Hora</th>
+					<th>Dia del mes</th>
+					<th>Mes</th>
+					<th>Dia de la setmana</th>
+					<th>Script</th>
+					<th></th>
+				  </tr>
+				  <tr v-for="task in tasks">
+					<td>{{task.user}}</td>
+					<td>{{task.minute}}</td>
+					<td>{{task.hour}}</td>
+					<td>{{task.m_day}}</td>
+					<td>{{task.month}}</td>
+					<td>{{task.w_day}}</td>
+					<td>{{task.script}}</td>
+					<td><button @click="remove(task)">x</button></td>
+				  </tr>
+				  <tr>
+					<td>Crear</td>
+					<td><input type="text" v-model="script_minute" onkeypress="validateCron(event)" /></td>
+					<td><input type="text" v-model="script_hour" onkeypress="validateCron(event)" /></td>
+					<td><input type="text" v-model="script_m_day" onkeypress="validateCron(event)" /></td>
+					<td><input type="text" v-model="script_month" onkeypress="validateCron(event)" /></td>
+					<td><input type="text" v-model="script_w_day" onkeypress="validateCron(event)" /></td>
+					<td>
+						<input type="text" ref="script" v-model="script_path" @keypress="pathChanging()" list="files" v-on:keydown.tab="interruptTab" />
+						<datalist id="files">
+							<option v-for="f in paths" v-bind:value="f.path" />
+						</datalist>
+					</td>
+					<td><button @click="add()" :disabled='script_minute === "" || script_hour === "" || script_m_day === "" || script_month === "" || script_w_day === "" || script_path === ""'>+</button></td>
+				  </tr>
+				</table>
+				
+				<!-- popups -->
+				<div v-bind:class="i.style" v-for="i in info">
+					{{i.msg}}
+					<button @click="discardVar(i.id)">x</button>
+				</div>
+			</section>
+			
+			<section id="paquets" v-if="active">
+				<h1>Filtrat de paquets</h1>
+				
+				<table>
+				  <tr>
+					<th>Class</th>
+					<th>IP origen</th>
+					<th>IP destí</th>
+					<th>Port origen</th>
+					<th>Port destí</th>
+					<th>Protocol</th>
+					<th>Action</th>
+					<th></th>
+				  </tr>
+				  <template v-for="paquetss in paquets">
+					  <tr v-for="packet in paquetss.filters">
+						<td>{{paquetss.class}}</td>
+						<td>{{packet.ip_src}}</td>
+						<td>{{packet.ip_dst}}</td>
+						<td>{{packet.spt}}</td>
+						<td>{{packet.dpt}}</td>
+						<td>{{packet.protocol}}</td>
+						<td v-bind:class="{ accept: packet.action === 'ACCEPT', drop: packet.action === 'DROP' }">{{packet.action}}</td>
+						<td><button @click="remove(paquetss.class, packet)">x</button></td>
+					  </tr>
+				  </template>
+				  <tr>
+					<td>
+						<select v-model="filter_class">
+							<option value="INPUT">INPUT</option>
+							<option value="FORWARD">FORWARD</option>
+							<option value="OUTPUT">OUTPUT</option>
+						</select>
+					</td>
+					<td><input type="text" v-model="filter_ip_src" /></td>
+					<td><input type="text" v-model="filter_ip_dst" /></td>
+					<td><input type="text" v-if="filter_protocol === 'tcp' || filter_protocol === 'udp'" v-model="filter_port_src" /></td>
+					<td><input type="text" v-if="filter_protocol === 'tcp' || filter_protocol === 'udp'" v-model="filter_port_dst" /></td>
+					<td>
+						<select v-model="filter_protocol">
+							<option value="tcp">tcp</option>
+							<option value="udp">udp</option>
+							<option value="icmp">icmp</option>
+							<option value="all">all</option>
+						</select>
+					</td>
+					<td>
+						<select v-model="filter_action" v-bind:data-chosen="filter_action" >
+							<option value="ACCEPT">ACCEPT</option>
+							<option value="DROP">DROP</option>
+						</select>
+					</td>
+					<td><button @click="add()">+</button></td>
+				  </tr>
+				</table>
+				
+				<!-- popups -->
+				<div v-bind:class="i.style" v-for="i in info">
+					{{i.msg}}
+					<button @click="discardVar(i.id)">x</button>
+				</div>
+			</section>
+			
+			<section id="users" v-if="active">
+				<h1>Gestió d'usuaris</h1>
+				<div>
+					<article>
+						<h3>Usuaris</h3>
+						
+						<div id="userPanel">
+							<div>
+								<span v-for="user in users" v-bind:class="{ selected: selected === user}" @mouseover="selected = user">{{user.username}}</span>
+							</div>
+							<div v-if="selected !== null">
+								<div>
+									<input type="checkbox" v-model="selected.superuser" @change="superuserChange()" />
+									Sudoer
+								</div>
+								<!-- altres divs... -->
+								<button @click="remove()">eliminar</button>
+							</div>
+						</div>
+					</article>
+					
+					<article>
+						<h3>Crear</h3>
+						
+						<form onsubmit="return false;"> <!-- method="post" enctype="application/x-www-form-urlencoded" -->
+							<label for="name">Nom</label>
+							<input type="text" id="name" v-model="username" />
+							<label for="password">Contrasenya</label>
+							<input type="password" id="password" v-model="password" />
+							<label for="check_password">Confirmar contrasenya</label>
+							<input type="password" id="check_password" v-model="check_password" />
+							<button @click="create()">+</button>
+						</form>
+					</article>
+				</div>
+				
+				<!-- popups -->
+				<div v-bind:class="i.style" v-for="i in info">
+					{{i.msg}}
+					<button @click="discardVar(i.id)">x</button>
+				</div>
+			</section>
+			
+			<section id="music" v-if="active">
+				<h1>Música</h1>
+				
+				<div id="stoppedMusic" v-if="stopped">
+					&#9888; music-manager desactivat &#9888;
+					<button @click="launch()">Reactivar</button>
+				</div>
+				
+				<div v-if="!stopped">
+					<div>
+						<div v-for="playlist in playlists" v-bind:class="{ selected: selected === playlist}" @mouseover="selected = playlist">
+							{{playlist.playlist}}
+							<button @click="play(playlist.playlist)">></button>
+						</div>
+						<div>
+							<input type="text" v-model="new_playlist" />
+							<button @click="addPlaylist()">+</button>
+						</div>
+					</div>
+					<div v-if="selected !== null">
+						<span v-for="music in selected.files">{{music.path}}</span>
+						
+						<div>
+							<input type="text" ref="script" v-model="new_song" @keypress="pathChanging()" list="files" v-on:keydown.tab="interruptTab" />
+							<datalist id="files">
+								<option v-for="f in paths" v-bind:value="f.path" />
+							</datalist>
+							<button @click="addSong()">+</button>
+						</div>
+					</div>
+				</div>
+				
+				<div>
+					{{song}}
+					<progress v-bind:value="song_listened" v-bind:max="song_duration" />
+				</div>
+				
+				<div id="music-controller">
+					<!-- Previous -->
+					<svg @click="previous()" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+					
+					<!-- Play -->
+					<svg @click="start()" v-bind:class="{ pressed: status !== 1 }" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+					
+					<!-- Stop -->
+					<svg @click="stop()" v-bind:class="{ pressed: status !== 2 }" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+					
+					<!-- Next -->
+					<svg @click="next()" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+					
+					<!-- Loop -->
+					<svg @click="loop()" v-bind:class="{ pressed: is_looping }" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path></svg>
+					
+					<!-- Shuffle -->
+					<svg @click="shuffle()" xmlns="http://www.w3.org/2000/svg" viewBox="3 3 18 18" fill="none"><path d="M16.4697 5.46967C16.1768 5.76256 16.1768 6.23744 16.4697 6.53033L17.1893 7.25H13.3768C12.706 7.25 12.0942 7.63343 11.8018 8.23713L11.5914 8.67144C11.5381 8.78157 11.5381 8.91006 11.5914 9.02018L12.1603 10.1947C12.2332 10.3451 12.4474 10.3451 12.5203 10.1947L13.1518 8.89102C13.1935 8.80478 13.2809 8.75 13.3768 8.75H17.1893L16.4697 9.46967C16.1768 9.76256 16.1768 10.2374 16.4697 10.5303C16.7626 10.8232 17.2374 10.8232 17.5303 10.5303L19.5303 8.53033C19.8232 8.23744 19.8232 7.76256 19.5303 7.46967L17.5303 5.46967C17.2374 5.17678 16.7626 5.17678 16.4697 5.46967Z" fill="black"/><path d="M10.0336 15.3286C10.0869 15.2184 10.0869 15.0899 10.0336 14.9798L9.46469 13.8053C9.39183 13.6549 9.17755 13.6549 9.10469 13.8053L8.47324 15.109C8.43146 15.1952 8.34407 15.25 8.24824 15.25H5C4.58579 15.25 4.25 15.5858 4.25 16C4.25 16.4142 4.58579 16.75 5 16.75H8.24824C8.91903 16.75 9.53079 16.3666 9.82321 15.7629L10.0336 15.3286Z" fill="black"/><path d="M16.4697 18.5303C16.1768 18.2374 16.1768 17.7626 16.4697 17.4697L17.1893 16.75H13.3768C12.706 16.75 12.0942 16.3666 11.8018 15.7629L8.47324 8.89102C8.43146 8.80478 8.34407 8.75 8.24824 8.75H5C4.58579 8.75 4.25 8.41421 4.25 8C4.25 7.58579 4.58579 7.25 5 7.25H8.24824C8.91903 7.25 9.53079 7.63343 9.82321 8.23713L13.1518 15.109C13.1935 15.1952 13.2809 15.25 13.3768 15.25H17.1893L16.4697 14.5303C16.1768 14.2374 16.1768 13.7626 16.4697 13.4697C16.7626 13.1768 17.2374 13.1768 17.5303 13.4697L19.5303 15.4697C19.8232 15.7626 19.8232 16.2374 19.5303 16.5303L17.5303 18.5303C17.2374 18.8232 16.7626 18.8232 16.4697 18.5303Z" fill="black"/></svg>
+				</div>
+				
+				<!-- popups -->
+				<div v-bind:class="i.style" v-for="i in info">
+					{{i.msg}}
+					<button @click="discardVar(i.id)">x</button>
+				</div>
+			</section>
+		</main>
+		
+		<script>
+			let processes_a = document.getElementById('processes_a'),
+				logs_a = document.getElementById('logs_a'),
+				tasks_a = document.getElementById('tasks_a'),
+				music_a = document.getElementById('music_a'),
+				users_a = document.getElementById('users_a'),
+				paquets_a = document.getElementById('paquets_a');
+			function show(el) {
+				processes_app.setActive(false);
+				logs_app.setActive(false);
+				tasks_app.setActive(false);
+				music_app.setActive(false);
+				users_app.setActive(false);
+				paquets_app.setActive(false);
+				processes_a.className = '';
+				logs_a.className = '';
+				tasks_a.className = '';
+				music_a.className = '';
+				users_a.className = '';
+				paquets_a.className = '';
+				
+				active = eval(`${el}_app`);
+				active.setActive(true);
+				eval(`${el}_a`).className = 'selected';
+			}
+			
+			var popup_functions = {
+				appendVar(_msg, _style) {
+					let id = 0;
+					if (this.info.length > 0) id = this.info[this.info.length - 1].id + 1;
+					
+					this.info.push({id:id, msg:_msg, style:_style});
+					
+					setTimeout(()=>this.discardVar(id), 8000);
+				},
+				appendError: function(err) {
+					this.appendVar(err, 'error');
+				},
+				appendInfo: function(msg) {
+					this.appendVar(msg, 'info');
+				},
+				discardVar: function(id) {
+					this.info = this.info.filter(e => e.id !== id);
+				}
+			};
+			var processes_app = new Vue({
+				el: '#processes',
+				data: {
+					active: true,
+					reload: true,
+					
+					uptime: '',
+					ram_usage: '',
+					disc_usage: '',
+					
+					
+					pause_time: '30',
+					processes: [],
+					sortedProcesses: [],
+					
+					info: [],
+					
+					/* sort variables */
+					sort_by: 'user',
+					desc: false
+				},
+				methods: {
+					setActive: function(bool) {
+						this.active = bool;
+						if (bool) this.load();
+					},
+					cpu_usage: function() {
+						return `${Math.trunc(this.processes.reduce((acum,curr)=>acum+curr.cpu, 0)*100)}%`;
+					},
+					kill: function(pid) {
+						searcher.killProcess(pid).then((e)=>{
+							if (e.status === 200) this.appendInfo(e.result);
+							else this.appendError(e.err);
+						});
+					},
+					stop: function(pid) {
+						searcher.stopProcess(pid, this.pause_time);
+					},
+					load: function() {
+						searcher.getProcesses().then((r)=>{
+							if (r.status === 200) {
+								this.uptime = r.uptime;
+								this.ram_usage = `${Math.trunc(r.ram_usage*100)}%`
+								this.disc_usage = `${Math.trunc(r.disc_usage*100)}%`;
+								this.processes = r.processes;
+								this.reloadSortedProcesses();
+								
+								if (this.reload && this.active) setTimeout(this.load, 1500); // torna a cridar en 2s
+							}
+						});
+					},
+					reloadChanged: function() {
+						if (this.reload) this.load();
+					},
+					reloadSortedProcesses: function() {
+						this.sortedProcesses =
+							this.processes.sort((a,b)=>{
+								if (this.desc) {
+									if (a[this.sort_by] > b[this.sort_by]) return -1;
+									return a[this.sort_by] < b[this.sort_by];
+								}
+								else {
+									if (a[this.sort_by] < b[this.sort_by]) return -1;
+									return a[this.sort_by] > b[this.sort_by];
+								}
+							});
+					},
+					setSort: function(criteria) {
+						if (this.sort_by == criteria) this.desc = !this.desc; // s'ha clickat el mateix, fer el toggle
+						else this.sort_by = criteria;
+						this.reloadSortedProcesses();
+					},
+					...popup_functions
+				},
+				beforeMount() {
+					this.load();
+				}
+			});
+			
+			var logs_app = new Vue({
+				el: '#logs',
+				data: {
+					active: false,
+					last: [],
+					logs: '',
+					
+					info: []
+				},
+				methods: {
+					setActive: function(bool) {
+						this.active = bool;
+						if (bool) this.load();
+					},
+					setLogs: function(txt) {
+						this.logs = txt;
+						if (this.$refs.logs_text !== undefined) this.$refs.logs_text.scrollTop = this.$refs.logs_text.scrollHeight;
+					},
+					load: function() {
+						searcher.getLogs().then((r)=>{
+							if (r.status === 200) {
+								this.last = r.last;
+								this.setLogs(r.logs);
+							}
+						});
+					},
+					...popup_functions
+				},
+				beforeMount() {
+					this.load();
+				}
+			});
+			
+			var tasks_app = new Vue({
+				el: '#tasks',
+				data: {
+					active: false,
+					
+					script_path: '',
+					script_minute: '',
+					script_hour: '',
+					script_m_day: '',
+					script_month: '',
+					script_w_day: '',
+					
+					paths: [],
+					tasks: [],
+					
+					info: []
+				},
+				methods: {
+					setActive: function(bool) {
+						this.active = bool;
+					},
+					add: function() {
+						searcher.addTask(this.script_minute, this.script_hour, this.script_m_day, this.script_month, this.script_w_day, this.script_path).then((r)=>{
+								if (r.status === 200) {
+									this.load();
+									
+									// reset
+									this.script_path = '';
+									this.script_minute = '';
+									this.script_hour = '';
+									this.script_m_day = '';
+									this.script_month = '';
+									this.script_w_day = '';
+								}
+							});
+					},
+					remove: function(task) {
+						searcher.removeTask(task.minute, task.hour, task.m_day, task.month, task.w_day, task.script, task.user).then((r)=>{
+								if (r.status === 200) this.load();
+							});
+					},
+					interruptTab: function() {
+						this.$refs.script.focus();
+						event.preventDefault();
+					},
+					pathChanging: function() {
+						setTimeout(this.pathChanged, 1); // keypress encara no ha afegit la tecla a la variable
+					},
+					pathChanged: function() {
+						searcher.getHints(this.script_path).then((e)=>{
+							this.paths = e.results;
+							if (this.$refs.script !== undefined) this.$refs.script.focus(); // si no datalist no es recarga
+						});
+					},
+					load: function() {
+						searcher.getTasks().then((e)=>this.tasks = e.tasks);
+					},
+					...popup_functions
+				},
+				beforeMount() {
+					this.pathChanged();
+					this.load();
+				}
+			});
+			
+			var music_app = new Vue({
+				el: '#music',
+				data: {
+					active: false,
+					
+					playlists: [],
+					selected: null,
+					stopped: false,
+					
+					song_listened: 0,
+					song_duration: 1,
+					song: '-',
+					is_looping: 0,
+					status: 0,
+					
+					new_playlist: '',
+					new_song: '',
+					
+					paths: [],
+					info: []
+				},
+				methods: {
+					setActive: function(bool) {
+						this.active = bool;
+						if (this.active) this.load();
+					},
+					load: function() {
+						searcher.listPlaylists().then((r)=>{
+							if (r.stopped) this.stopped = true;
+							else {
+								this.playlists = r.data.playlists;
+								this.stopped = false;
+								this.song = (r.data.song === null ? '-' : r.data.song);
+								this.song_listened = parseFloat(r.data.time.split('/')[0]);
+								this.song_duration = r.data.time.split('/')[1] == '0' ? 1 : parseFloat(r.data.time.split('/')[1]);
+								this.status = r.data.status;
+								this.is_looping = r.data.loop;
+								
+								if (this.selected !== null) this.selected = this.playlists.filter(p => p.playlist === this.selected.playlist)[0];
+								if (this.selected === undefined) this.selected = null;
+							}
+							
+							if (this.active) setTimeout(this.load, 1500); // torna a cridar en 2s
+						}).catch(error => setTimeout(this.load, 1500));
+					},
+					play: function(playlist) {
+						searcher.loadPlaylist(playlist);
+					},
+					next: function() {
+						searcher.nextSongInPlaylist();
+					},
+					start: function() {
+						searcher.playSong();
+					},
+					stop: function() {
+						searcher.stopSong();
+					},
+					loop: function() {
+						searcher.toggleLoopPlaylist();
+					},
+					shuffle: function() {
+						if (this.selected === null) return;
+						searcher.shufflePlaylist(this.selected.playlist);
+					},
+					previous: function() {
+						searcher.previousSongInPlaylist();
+					},
+					addSong: function() {
+						if (this.selected === null) return; // no hauria de passar mai
+						searcher.addSong(this.selected.playlist, this.new_song).then(r => this.appendInfo('Canço afegida.')); // ja s'actualitza sol
+					},
+					addPlaylist: function() {
+						searcher.addPlaylist(this.new_playlist).then(r => this.appendInfo('Playlist afegida.')); // ja s'actualitza sol
+					},
+					pathChanging: function() {
+						setTimeout(this.pathChanged, 1); // keypress encara no ha afegit la tecla a la variable
+					},
+					pathChanged: function() {
+						searcher.getHints(this.new_song).then((e)=>{
+							this.paths = e.results;
+							if (this.$refs.script !== undefined) this.$refs.script.focus(); // si no datalist no es recarga
+						});
+					},
+					interruptTab: function() {
+						this.$refs.script.focus();
+						event.preventDefault();
+					},
+					launch: function() {
+						searcher.startMusicPlayer();
+					},
+					...popup_functions
+				},
+				beforeMount() {
+					this.pathChanged();
+				}
+			});
+			
+			var users_app = new Vue({
+				el: '#users',
+				data: {
+					active: false,
+					
+					username: '',
+					password: '',
+					check_password: '',
+					
+					users: [],
+					selected: null,
+					
+					info: []
+				},
+				methods: {
+					setActive: function(bool) {
+						this.active = bool;
+					},
+					create: function() {
+						if (this.password != this.check_password) this.appendError('Els passwords no coincideixen.');
+						else searcher.addUser(this.username, this.password).then((r)=>{
+							if (r.err === undefined) this.appendInfo('Usuari afegit.');
+							else this.appendError(r.err);
+						});
+					},
+					superuserChange: function() {
+						if (this.selected === null) return; // en principi mai hauria de passar
+						searcher.setSudo(this.selected.username, this.selected.superuser).then((r)=>{
+							if (r.status === 200) this.appendInfo('Permis cambiat.');
+							else this.appendError(r.err);
+							this.load();
+						});
+					},
+					remove: function() {
+						if (this.selected === null) return; // en principi mai hauria de passar
+						searcher.removeUser(this.selected.username).then((r)=>{
+							if (r.status === 200) {
+								this.appendInfo('Usuari eliminat.');
+								if (r.self) logout();
+								else this.load();
+							}
+							else this.appendError(r.err);
+						});
+					},
+					load: function() {
+						searcher.getUsers().then((r)=>{
+							this.users = r.users;
+							if (this.selected !== null) this.selected = this.users.filter(u => u.username === this.selected.username)[0];
+							if (this.selected === undefined) this.selected = null;
+						});
+					},
+					...popup_functions
+				},
+				beforeMount() {
+					this.load();
+				}
+			});
+			
+			var paquets_app = new Vue({
+				el: '#paquets',
+				data: {
+					active: false,
+					paquets: [],
+					
+					filter_class: 'INPUT',
+					filter_ip_src: '',
+					filter_ip_dst: '',
+					filter_port_src: '',
+					filter_port_dst: '',
+					filter_protocol: 'tcp',
+					filter_action: 'ACCEPT',
+					
+					info: []
+				},
+				methods: {
+					setActive: function(bool) {
+						this.active = bool;
+					},
+					add: function() {
+						searcher.addFilter(this.filter_class, this.filter_ip_src, this.filter_ip_dst, this.filter_port_src, this.filter_port_dst, this.filter_protocol, this.filter_action).then((e)=>{
+							this.load();
+							
+							this.filter_ip_src = '';
+							this.filter_ip_dst = '';
+							this.filter_port_src = '';
+							this.filter_port_dst = '';
+						});
+					},
+					remove: function(clase, packet) {
+						searcher.removeFilter(clase, packet.ip_src, packet.ip_dst, packet.spt === undefined ? '' : packet.spt, packet.dpt === undefined ? '' : packet.dpt, packet.protocol, packet.action).then((e)=>this.load());
+					},
+					load: function() {
+						searcher.getFilters().then((r)=>this.paquets = r.filters);
+					},
+					...popup_functions
+				},
+				beforeMount() {
+					this.load();
+				}
+			});
+			
+			show('processes');
+		</script>
+	</body>
+</html>

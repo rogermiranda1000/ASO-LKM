@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Linux manager</title>
+		<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+		<style>
+			.error {
+				background-color: rgb(230, 89, 89);
+			}
+			
+			.info {
+				background-color: rgb(95, 175, 95);
+			}
+
+			.shadow , .error , .info {
+				box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.329);
+			}
+			* {
+				font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+				font-size: 20px;
+			}
+			body {
+				height: calc(100vh - 16px);
+			}
+			main {
+				display: flex;
+				flex-direction: column;
+				justify-content: end;
+				align-items: center;
+				height: 100%;
+			}
+			button:hover {
+				cursor: pointer;
+			}
+			form {
+				position: absolute;
+  				top: 50%;
+  				left: 50%;
+  				transform: translate(-50%, -50%);
+				padding: 30px;
+				opacity: 0.75;
+				transition: padding .2s, opacity .2s , border-radius .2s;
+				background-color: #B8E1FF;
+				border-radius: 23px;
+				display: flex;
+				flex-direction: column;
+			}
+			form:hover {
+				padding: 40px;
+				opacity: 1;
+				border-radius: 40px;
+			}
+			input {
+				margin-top: 5px;
+				margin-bottom: 20px;
+			}
+			form > button {
+				margin: 10px;
+				border-radius: 10px;
+				border: none;
+				padding: 6px;
+				width: 50%;
+				transition: width 0.2s;
+				align-self: center;
+			}
+			form > button:hover {
+				width: 60%;
+			}
+			
+			.error , .info {
+				position: relative;
+   				width: 65%;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				padding: 25px;
+				font-weight: 500;
+				margin: 8px;
+				z-index: 10;
+				opacity: 0.8;
+				transition: opacity 0.2s;
+			}
+			.error:hover , .info:hover {
+				opacity: 1;
+			}
+			.error > button , .info > button {
+				position: absolute;
+   				top: 2px;
+   				right: 2px;
+				background-color: transparent;
+				border: none;
+				z-index: 100;
+			}
+		</style>
+	</head>
+	<body>
+		<main id="vueRegion">
+			<form class="shadow" action="login_post.sh" onsubmit="return false;"> <!-- method="post" enctype="application/x-www-form-urlencoded" -->
+				<label for="name">Name</label>
+				<input type="text" id="name" v-model="username" />
+				<label for="password">Password</label>
+				<input type="password" id="password" v-model="password" />
+				<button class="shadow" @click="submit()" :disabled='loading'>Login</button>
+				<button class="shadow" @click="create()" :disabled='loading'>Crear</button>
+			</form>
+			
+			<div v-bind:class="i.style" v-for="i in info">
+				{{i.msg}}
+				<button @click="discardError(i.id)">x</button>
+			</div>
+		</main>
+
+		<script>
+			class Searcher {
+				constructor() {}
+
+				loginPost(username, password) {
+					return fetch('login_post.sh', {
+								method: 'POST',
+								headers: {
+								  'Content-Type': 'application/x-www-form-urlencoded'
+								},
+								body: `username=${username}&password=${password}`
+							}).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+				
+				registerPost(username, password) {
+					return fetch('create_user_post.sh', {
+								method: 'POST',
+								headers: {
+								  'Content-Type': 'application/x-www-form-urlencoded'
+								},
+								body: `username=${username}&password=${password}`
+							}).then(response => {
+								return response.json().then(e => {
+									return {...e, status: response.status}
+								});
+							});
+				}
+			};
+			
+			const searcher = new Searcher();
+			var app = new Vue({
+				el: '#vueRegion',
+				data: {
+					username: '',
+					password: '',
+					loading: false,
+					info: []
+				},
+				methods: {
+					submit: function() {
+						this.search(searcher.loginPost(this.username, this.password), (result)=>{
+							document.cookie = `token=${result.token}`; // guarda el token
+							window.location = '/'; // ja s'ha fet login, torna a la pàgina principal
+						});
+					},
+					create: function() {
+						this.search(searcher.registerPost(this.username, this.password), (result)=>{
+							this.appendInfo('User successfully created.');
+						});
+					},
+					search: function(promise, on_success) {
+						this.loading = true;
+						
+						promise.then(result => {
+							this.loading = false;
+							
+							if (result.status !== 200) this.appendError(result.err);
+							else on_success(result);
+						});
+					},
+					appendVar(_msg, _style) {
+						let id = 0;
+						if (this.info.length > 0) id = this.info[this.info.length - 1].id + 1;
+						
+						this.info.push({id:id, msg:_msg, style:_style});
+						
+						setTimeout(()=>this.discardError(id), 8000);
+					},
+					appendError: function(err) {
+						this.appendVar(err, 'error');
+					},
+					appendInfo: function(msg) {
+						this.appendVar(msg, 'info');
+					},
+					discardError: function(error_id) {
+						this.info = this.info.filter(e => e.id !== error_id);
+					}
+				}
+			});
+		</script>
+	</body>
+</html>
