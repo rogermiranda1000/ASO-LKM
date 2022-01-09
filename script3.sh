@@ -1,2 +1,6 @@
 #!/bin/bash
-echo "3" > ~/3.txt
+
+music_manager_solicitations="/home/music-manager/music_manager_solicitations"
+
+# reproduir
+echo "p" > "$music_manager_solicitations"
